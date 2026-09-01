@@ -402,6 +402,38 @@ kpi4.metric("Zika", f"{gdf_mapa['zika'].sum():,}".replace(",", "."))
 
 st.markdown("---")
 
+# Bloco Explicativo Acessível e Detalhado
+with st.expander("ℹ️ Entenda as Arboviroses e por que o mapeamento no Recife é essencial", expanded=False):
+    st.markdown("""
+    ### 🦟 O que são Arboviroses e como elas afetam a nossa saúde?
+    O termo **arbovirose** vem da junção em inglês de *arthropod-borne virus* (vírus transmitidos por artrópodes). No ambiente urbano do Recife, essas doenças são transmitidas principalmente pela picada da fêmea do mosquito **_Aedes aegypti_**. As três principais que afetam nossa cidade são:
+
+    * **Dengue:** Provoca febre alta e repentina, dor de cabeça muito forte, dor atrás dos olhos e dores musculares intensas (sensação de "corpo quebrado"). Em casos graves, a dengue pode causar sangramentos, queda brusca de pressão e levar à internação em UTI. Como existem 4 sorotipos diferentes do vírus, uma pessoa pode ter dengue até quatro vezes, sendo que as reinfecções costumam ter risco aumentado de gravidade.
+    * **Chikungunya:** É conhecida pelas dores articulares (nas "juntas") extremamente intensas e debilitantes. A pessoa muitas vezes mal consegue caminhar ou segurar objetos. O grande desafio da Chikungunya é que, mesmo depois que a febre passa, as dores nas articulações podem se tornar crônicas e durar meses ou até anos, prejudicando gravemente a rotina de trabalho e a qualidade de vida.
+    * **Zika:** Geralmente causa sintomas mais leves no momento da infecção, como manchas vermelhas na pele que coçam muito (exantema), olhos vermelhos e febre baixa. No entanto, o Zika trouxe um impacto histórico mundial para o Recife: a infecção em mulheres grávidas pode provocar a **Síndrome da Zika Congênita** (com casos de microcefalia nos bebês), além de estar associada a complicações neurológicas como a Síndrome de Guillain-Barré.
+
+    ---
+
+    ### 🏙️ Por que o mosquito se espalha mais em certos bairros?
+    O mosquito não escolhe bairros por acaso. A proliferação das arboviroses está diretamente ligada à **estrutura e organização do espaço urbano**:
+
+    1. **Acesso à Água e Saneamento:** Em áreas onde o abastecimento de água é irregular ou intermitente, os moradores precisam guardar água em baldes, tonéis e caixas d'água. Se esses recipientes não ficarem perfeitamente vedados, tornam-se criadouros ideais para o mosquito.
+    2. **Drenagem e Lixo:** Bairros com deficiência na coleta regular de lixo ou com canais e galerias pluviais assoreadas acumulam água parada com muito mais facilidade, especialmente no período de chuvas.
+    3. **Clima e Temperatura:** Recife é uma cidade quente e úmida. O calor acelera o ciclo de vida do mosquito: os ovos eclodem e viram adultos muito mais rápido, aumentando a velocidade de circulação dos vírus.
+
+    ---
+
+    ### 🗺️ Por que mapear os dados bairro a bairro é tão importante?
+    Olhar apenas para o número total de casos de toda a cidade esconde a realidade de cada comunidade. Mapear os dados no nível de bairros e RPAs (Regiões Político-Administrativas) faz toda a diferença porque:
+
+    * **Mostra onde agir primeiro:** Permite que a vigilância em saúde saiba exatamente quais bairros estão virando focos (*hotspots*) de transmissão antes que a doença se espalhe para a cidade inteira.
+    * **Direciona os recursos públicos:** Facilita o envio de agentes de endemias, aplicação de larvicidas e mutirões de limpeza para os locais mais críticos, otimizando o dinheiro público e salvando vidas.
+    * **Informa a população:** Quando você sabe que o seu bairro ou a sua região está com muitos casos registrados, os cuidados individuais e comunitários aumentam naturalmente.
+    * **Democratiza a informação:** Transforma dados brutos e complexos em gráficos e mapas simples de entender, aproximando a pesquisa científica da sociedade e fortalecendo o controle social.
+    """)
+
+st.markdown("---")
+
 # 5. Visualização Espacial
 col_mapa, col_grafico = st.columns([1.6, 1.0])
 

@@ -168,6 +168,7 @@ if not anos_selecionados:
     st.warning("⚠️ Selecione pelo menos um ano na barra lateral para exibir os dados.")
     st.stop()
 
+# Filtra exatamente os anos escolhidos pelo usuário
 df_filtrado = df_consolidado[df_consolidado["ano"].isin(anos_selecionados)]
 
 df_agrupado = df_filtrado.groupby("bairro_norm").agg(
@@ -209,7 +210,7 @@ st.sidebar.markdown(
     """
 )
 
-# Configuração Plotly: trava edição de texto e remove ferramentas desnecessárias no mobile
+# Configuração Plotly responsiva e sem edição acidental
 plotly_config = {
     "displayModeBar": False,
     "editable": False,
@@ -218,8 +219,9 @@ plotly_config = {
 }
 
 # 4. Indicadores Principais (KPIs)
-st.title("🦟 Arboviroses em Recife")
-st.caption(f"Período: **{min(anos_selecionados)}–{max(anos_selecionados)}** | Filtro: **{tipo_doenca}** | Métrica: **{label_metrica}**")
+st.title("🦟 Painel de Arboviroses | Recife")
+anos_txt = f"{min(anos_selecionados)}–{max(anos_selecionados)}" if len(anos_selecionados) > 1 else str(anos_selecionados[0])
+st.caption(f"Período Selecionado: **{anos_txt}** | Agravo: **{tipo_doenca}** | Métrica: **{label_metrica}**")
 
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 kpi1.metric("Total de Casos", f"{gdf_mapa['total_casos'].sum():,}".replace(",", "."))
@@ -233,7 +235,7 @@ st.markdown("---")
 col_mapa, col_grafico = st.columns([1.6, 1.0])
 
 with col_mapa:
-    st.subheader(f"Distribuição Espacial")
+    st.subheader("Distribuição Espacial")
     val_max = max(float(gdf_mapa[col_metrica].max()), 1.0)
     
     palette = ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
@@ -251,9 +253,6 @@ with col_mapa:
     .leaflet-control-attribution a[href*="leafletjs.com"],
     .leaflet-control-attribution .leaflet-attribution-flag {
         display: none !important;
-    }
-    .legend {
-        font-size: 11px !important;
     }
     </style>
     """
@@ -302,7 +301,7 @@ with col_grafico:
         color=col_metrica,
         color_continuous_scale="Reds"
     )
-    fig_bar.update_coloraxes(showscale=False)  # Oculta colorbar lateral para dar espaço aos nomes
+    fig_bar.update_coloraxes(showscale=False)
     fig_bar.update_layout(
         showlegend=False,
         height=500,
@@ -314,55 +313,77 @@ with col_grafico:
     fig_bar.update_traces(textposition="inside", insidetextanchor="middle")
     st.plotly_chart(fig_bar, use_container_width=True, config=plotly_config)
 
-# 6. Análise por RPA e Série Temporal Histórica
+# 6. Análise por RPA e Série Temporal Filtrada pelos Anos Ativos
 st.markdown("---")
 col_tempo, col_rpa = st.columns([1.3, 0.9])
 
 with col_tempo:
-    st.subheader("📈 Evolução Temporal (2015–2024)")
-    df_evolucao = df_consolidado.groupby("ano").agg(
+    # O gráfico agora filtra SOMENTE os anos selecionados pelo usuário
+    st.subheader(f"📈 Série Temporal ({anos_txt})")
+    df_evolucao = df_filtrado.groupby("ano").agg(
         dengue=("dengue", "sum"),
         chikungunya=("chikungunya", "sum"),
         zika=("zika", "sum"),
         total_casos=("total_casos", "sum")
     ).reset_index()
 
-    if tipo_doenca == "Todas as Arboviroses":
-        df_melted = df_evolucao.melt(
-            id_vars=["ano"], 
-            value_vars=["dengue", "chikungunya", "zika"],
-            var_name="Agravo", 
-            value_name="Casos"
-        )
-        df_melted["Agravo"] = df_melted["Agravo"].str.capitalize()
-        
-        fig_line = px.line(
-            df_melted,
-            x="ano",
+    if len(anos_selecionados) == 1:
+        # Se for apenas 1 ano selecionado, mostra gráfico de barras por agravo no ano
+        df_ano_unico = pd.DataFrame({
+            "Agravo": ["Dengue", "Chikungunya", "Zika"],
+            "Casos": [
+                int(df_evolucao["dengue"].sum()),
+                int(df_evolucao["chikungunya"].sum()),
+                int(df_evolucao["zika"].sum())
+            ]
+        })
+        fig_line = px.bar(
+            df_ano_unico,
+            x="Agravo",
             y="Casos",
+            text="Casos",
             color="Agravo",
-            markers=True,
-            color_discrete_map={"Dengue": "#e74c3c", "Chikungunya": "#f39c12", "Zika": "#3498db"},
-            labels={"ano": "Ano", "Casos": "Casos"}
+            color_discrete_map={"Dengue": "#e74c3c", "Chikungunya": "#f39c12", "Zika": "#3498db"}
         )
+        fig_line.update_traces(textposition="inside", insidetextanchor="middle")
     else:
-        fig_line = px.line(
-            df_evolucao,
-            x="ano",
-            y=col_base,
-            markers=True,
-            color_discrete_sequence=["#e74c3c"],
-            labels={"ano": "Ano", col_base: "Casos"}
-        )
+        # Se forem múltiplos anos, mostra a linha temporal filtrada
+        if tipo_doenca == "Todas as Arboviroses":
+            df_melted = df_evolucao.melt(
+                id_vars=["ano"], 
+                value_vars=["dengue", "chikungunya", "zika"],
+                var_name="Agravo", 
+                value_name="Casos"
+            )
+            df_melted["Agravo"] = df_melted["Agravo"].str.capitalize()
+            
+            fig_line = px.line(
+                df_melted,
+                x="ano",
+                y="Casos",
+                color="Agravo",
+                markers=True,
+                color_discrete_map={"Dengue": "#e74c3c", "Chikungunya": "#f39c12", "Zika": "#3498db"},
+                labels={"ano": "Ano", "Casos": "Casos"}
+            )
+        else:
+            fig_line = px.line(
+                df_evolucao,
+                x="ano",
+                y=col_base,
+                markers=True,
+                color_discrete_sequence=["#e74c3c"],
+                labels={"ano": "Ano", col_base: "Casos"}
+            )
 
     fig_line.update_layout(
         height=350,
         margin=dict(l=10, r=10, t=20, b=10),
         xaxis=dict(
             tickmode="array",
-            tickvals=anos_disponiveis,
+            tickvals=anos_selecionados if len(anos_selecionados) > 1 else None,
             tickformat="d",
-            fixedrange=True  # Impede zoom e cliques indesejados no eixo X
+            fixedrange=True
         ),
         yaxis=dict(fixedrange=True),
         hovermode="x unified",
@@ -372,7 +393,7 @@ with col_tempo:
     st.plotly_chart(fig_line, use_container_width=True, config=plotly_config)
 
 with col_rpa:
-    st.subheader("🏙️ Casos por RPA")
+    st.subheader(f"🏙️ Casos por RPA ({anos_txt})")
     df_rpa = gdf_mapa.groupby("rpa_nome").agg(casos=(col_base, "sum")).reset_index()
     df_rpa = df_rpa[df_rpa["rpa_nome"].str.startswith("RPA")].sort_values(by="casos", ascending=False)
     
@@ -385,7 +406,7 @@ with col_rpa:
         color="casos",
         color_continuous_scale="Oranges"
     )
-    fig_rpa.update_coloraxes(showscale=False)  # Remove colorbar para manter o gráfico limpo
+    fig_rpa.update_coloraxes(showscale=False)
     fig_rpa.update_layout(
         showlegend=False,
         height=350,

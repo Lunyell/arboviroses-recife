@@ -39,7 +39,7 @@ RPAS_RECIFE = {
     "RPA 4 (Oeste)": [
         "CORDEIRO", "ILHA DO RETIRO", "IPUTINGA", "MADALENA", "PRADO", 
         "TORRE", "ZUMBI", "ENGENHO DO MEIO", "TORROES", "VARZEA", 
-        "CAXANGA", "CIDADE UNIVERSITARIA", "VARZEA"
+        "CAXANGA", "CIDADE UNIVERSITARIA"
     ],
     "RPA 5 (Sudoeste)": [
         "AFOGADOS", "AREIAS", "BARRO", "BONGI", "CACOTE", "COQUEIRAL", 
@@ -181,7 +181,7 @@ gdf_mapa = gdf_bairros.merge(df_agrupado, on="bairro_norm", how="left").fillna(0
 for c in ["dengue", "chikungunya", "zika", "total_casos"]:
     gdf_mapa[c] = gdf_mapa[c].astype(int)
 
-# Cálculo de Taxa de Incidência
+# Taxa de Incidência
 gdf_mapa["taxa_incidencia"] = ((gdf_mapa[col_base] / gdf_mapa["populacao"]) * 10000).round(1)
 
 if modo_visualizacao == "Casos Absolutos (Volume)":
@@ -191,7 +191,7 @@ else:
     col_metrica = "taxa_incidencia"
     label_metrica = "Taxa / 10k hab."
 
-# Botão de Exportação na Barra Lateral
+# Exportação CSV
 st.sidebar.markdown("---")
 st.sidebar.subheader("📥 Exportar Dados")
 csv_data = df_filtrado.to_csv(index=False, sep=";").encode("utf-8")
@@ -213,6 +213,14 @@ st.sidebar.markdown(
     """
 )
 
+# Configuração responsiva e desativação do drag zoom em dispositivos touch
+plotly_config = {
+    "displayModeBar": False,
+    "staticPlot": False,
+    "responsive": True,
+    "scrollZoom": False
+}
+
 # 4. Indicadores Principais (KPIs)
 st.title("🦟 Monitoramento Espaço-Temporal de Arboviroses em Recife")
 st.caption(f"Período selecionado: **{', '.join(map(str, sorted(anos_selecionados)))}** | Filtro: **{tipo_doenca}** | Métrica: **{label_metrica}**")
@@ -225,7 +233,7 @@ kpi4.metric("Zika", f"{gdf_mapa['zika'].sum():,}".replace(",", "."))
 
 st.markdown("---")
 
-# 5. Visualização: Mapa Ampliado e Gráfico de Barras
+# 5. Visualização: Mapa Ampliado e Top Bairros
 col_mapa, col_grafico = st.columns([1.8, 1.0])
 
 with col_mapa:
@@ -280,7 +288,7 @@ with col_mapa:
     ).add_to(m)
     
     colormap.add_to(m)
-    st_folium(m, width="100%", height=650)
+    st_folium(m, width="100%", height=550)
 
 with col_grafico:
     st.subheader(f"Top 10 Bairros ({label_metrica})")
@@ -297,12 +305,13 @@ with col_grafico:
     )
     fig_bar.update_layout(
         showlegend=False,
-        height=650,
+        height=550,
         margin=dict(l=0, r=20, t=30, b=0),
         xaxis_title=label_metrica,
-        yaxis_title=None
+        yaxis_title=None,
+        dragmode=False
     )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True, config=plotly_config)
 
 # 6. Análise por RPA e Série Temporal Histórica
 st.markdown("---")
@@ -349,14 +358,14 @@ with col_tempo:
         height=360,
         margin=dict(l=20, r=20, t=30, b=20),
         xaxis=dict(tickmode="linear", tick0=2015, dtick=1),
-        hovermode="x unified"
+        hovermode="x unified",
+        dragmode=False
     )
-    st.plotly_chart(fig_line, use_container_width=True)
+    st.plotly_chart(fig_line, use_container_width=True, config=plotly_config)
 
 with col_rpa:
     st.subheader("🏙️ Casos por RPA")
     df_rpa = gdf_mapa.groupby("rpa_nome").agg(casos=(col_base, "sum")).reset_index()
-    # Filtra apenas as RPAs oficiais válidas ordenadas
     df_rpa = df_rpa[df_rpa["rpa_nome"].str.startswith("RPA")].sort_values(by="casos", ascending=False)
     
     fig_rpa = px.bar(
@@ -373,9 +382,10 @@ with col_rpa:
         height=360,
         margin=dict(l=10, r=10, t=30, b=20),
         xaxis_title=None,
-        yaxis_title="Notificações"
+        yaxis_title="Notificações",
+        dragmode=False
     )
-    st.plotly_chart(fig_rpa, use_container_width=True)
+    st.plotly_chart(fig_rpa, use_container_width=True, config=plotly_config)
 
 # 7. Rodapé
 st.markdown("---")

@@ -407,6 +407,7 @@ col_mapa, col_grafico = st.columns([1.6, 1.0])
 
 with col_mapa:
     st.subheader("Distribuição Espacial")
+    st.caption("💡 *Dica:* Passe o mouse ou clique sobre qualquer bairro no mapa para ver o detalhamento de casos.")
     val_max = max(float(gdf_mapa[col_metrica].max()), 1.0)
 
     palette = ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]

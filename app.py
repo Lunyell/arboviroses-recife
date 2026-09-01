@@ -181,7 +181,7 @@ gdf_mapa = gdf_bairros.merge(df_agrupado, on="bairro_norm", how="left").fillna(0
 for c in ["dengue", "chikungunya", "zika", "total_casos"]:
     gdf_mapa[c] = gdf_mapa[c].astype(int)
 
-# Taxa de Incidência
+# Cálculo da Taxa de Incidência
 gdf_mapa["taxa_incidencia"] = ((gdf_mapa[col_base] / gdf_mapa["populacao"]) * 10000).round(1)
 
 if modo_visualizacao == "Casos Absolutos (Volume)":
@@ -205,25 +205,21 @@ st.sidebar.download_button(
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     """
-    **Desenvolvimento:**  
-    **Luan Lucena**  
-    *Graduando em Geografia (Bacharelado)*  
-    *Universidade Federal de Pernambuco (UFPE)*  
-    *Grupo NEXUS – Sociedade & Natureza*
+    **Desenvolvimento:** **Luan Lucena** *Graduando em Geografia (Bacharelado)* *Universidade Federal de Pernambuco (UFPE)* *Grupo NEXUS – Sociedade & Natureza*
     """
 )
 
-# Configuração responsiva e desativação do drag zoom em dispositivos touch
+# Configuração Plotly: trava edição de texto e remove ferramentas desnecessárias no mobile
 plotly_config = {
     "displayModeBar": False,
-    "staticPlot": False,
+    "editable": False,
     "responsive": True,
     "scrollZoom": False
 }
 
 # 4. Indicadores Principais (KPIs)
-st.title("🦟 Monitoramento Espaço-Temporal de Arboviroses em Recife")
-st.caption(f"Período selecionado: **{', '.join(map(str, sorted(anos_selecionados)))}** | Filtro: **{tipo_doenca}** | Métrica: **{label_metrica}**")
+st.title("🦟 Arboviroses em Recife")
+st.caption(f"Período: **{min(anos_selecionados)}–{max(anos_selecionados)}** | Filtro: **{tipo_doenca}** | Métrica: **{label_metrica}**")
 
 kpi1, kpi2, kpi3, kpi4 = st.columns(4)
 kpi1.metric("Total de Casos", f"{gdf_mapa['total_casos'].sum():,}".replace(",", "."))
@@ -234,10 +230,10 @@ kpi4.metric("Zika", f"{gdf_mapa['zika'].sum():,}".replace(",", "."))
 st.markdown("---")
 
 # 5. Visualização: Mapa Ampliado e Top Bairros
-col_mapa, col_grafico = st.columns([1.8, 1.0])
+col_mapa, col_grafico = st.columns([1.6, 1.0])
 
 with col_mapa:
-    st.subheader(f"Distribuição Espacial ({label_metrica})")
+    st.subheader(f"Distribuição Espacial")
     val_max = max(float(gdf_mapa[col_metrica].max()), 1.0)
     
     palette = ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
@@ -245,7 +241,7 @@ with col_mapa:
     
     m = folium.Map(
         location=[-8.0580, -34.9200], 
-        zoom_start=12, 
+        zoom_start=11, 
         tiles="OpenStreetMap"
     )
     
@@ -255,6 +251,9 @@ with col_mapa:
     .leaflet-control-attribution a[href*="leafletjs.com"],
     .leaflet-control-attribution .leaflet-attribution-flag {
         display: none !important;
+    }
+    .legend {
+        font-size: 11px !important;
     }
     </style>
     """
@@ -288,10 +287,10 @@ with col_mapa:
     ).add_to(m)
     
     colormap.add_to(m)
-    st_folium(m, width="100%", height=550)
+    st_folium(m, width="100%", height=500)
 
 with col_grafico:
-    st.subheader(f"Top 10 Bairros ({label_metrica})")
+    st.subheader("Top 10 Bairros")
     df_top = gdf_mapa.sort_values(by=col_metrica, ascending=True).tail(10)
     fig_bar = px.bar(
         df_top,
@@ -299,18 +298,20 @@ with col_grafico:
         y=col_nome_bairro,
         orientation="h",
         text=col_metrica,
-        labels={col_metrica: label_metrica, col_nome_bairro: "Bairro"},
+        labels={col_metrica: label_metrica, col_nome_bairro: ""},
         color=col_metrica,
         color_continuous_scale="Reds"
     )
+    fig_bar.update_coloraxes(showscale=False)  # Oculta colorbar lateral para dar espaço aos nomes
     fig_bar.update_layout(
         showlegend=False,
-        height=550,
-        margin=dict(l=0, r=20, t=30, b=0),
+        height=500,
+        margin=dict(l=10, r=10, t=10, b=10),
         xaxis_title=label_metrica,
         yaxis_title=None,
         dragmode=False
     )
+    fig_bar.update_traces(textposition="inside", insidetextanchor="middle")
     st.plotly_chart(fig_bar, use_container_width=True, config=plotly_config)
 
 # 6. Análise por RPA e Série Temporal Histórica
@@ -342,7 +343,7 @@ with col_tempo:
             color="Agravo",
             markers=True,
             color_discrete_map={"Dengue": "#e74c3c", "Chikungunya": "#f39c12", "Zika": "#3498db"},
-            labels={"ano": "Ano", "Casos": "Notificações"}
+            labels={"ano": "Ano", "Casos": "Casos"}
         )
     else:
         fig_line = px.line(
@@ -351,15 +352,22 @@ with col_tempo:
             y=col_base,
             markers=True,
             color_discrete_sequence=["#e74c3c"],
-            labels={"ano": "Ano", col_base: f"Casos de {tipo_doenca}"}
+            labels={"ano": "Ano", col_base: "Casos"}
         )
 
     fig_line.update_layout(
-        height=360,
-        margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(tickmode="linear", tick0=2015, dtick=1),
+        height=350,
+        margin=dict(l=10, r=10, t=20, b=10),
+        xaxis=dict(
+            tickmode="array",
+            tickvals=anos_disponiveis,
+            tickformat="d",
+            fixedrange=True  # Impede zoom e cliques indesejados no eixo X
+        ),
+        yaxis=dict(fixedrange=True),
         hovermode="x unified",
-        dragmode=False
+        dragmode=False,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig_line, use_container_width=True, config=plotly_config)
 
@@ -373,18 +381,22 @@ with col_rpa:
         x="rpa_nome",
         y="casos",
         text="casos",
-        labels={"rpa_nome": "Região Sanitária / RPA", "casos": "Casos"},
+        labels={"rpa_nome": "", "casos": "Casos"},
         color="casos",
         color_continuous_scale="Oranges"
     )
+    fig_rpa.update_coloraxes(showscale=False)  # Remove colorbar para manter o gráfico limpo
     fig_rpa.update_layout(
         showlegend=False,
-        height=360,
-        margin=dict(l=10, r=10, t=30, b=20),
+        height=350,
+        margin=dict(l=10, r=10, t=20, b=10),
+        xaxis=dict(fixedrange=True),
+        yaxis=dict(fixedrange=True),
         xaxis_title=None,
-        yaxis_title="Notificações",
+        yaxis_title="Casos",
         dragmode=False
     )
+    fig_rpa.update_traces(textposition="inside", insidetextanchor="middle")
     st.plotly_chart(fig_rpa, use_container_width=True, config=plotly_config)
 
 # 7. Rodapé

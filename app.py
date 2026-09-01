@@ -1,4 +1,5 @@
 import glob
+import io
 import os
 import unicodedata
 import branca.colormap as cm
@@ -145,6 +146,118 @@ def normalizar_texto(texto):
     return "".join([c for c in nfkd if not unicodedata.combining(c)])
 
 
+def processar_dataframe_bruto(df_raw):
+    df_raw.columns = [str(c).lower().strip() for c in df_raw.columns]
+    col_combo = [c for c in df_raw.columns if "," in c]
+
+    dfs_para_unir = []
+
+    # 1. Trata registros concatenados por vírgula (34.556 casos de dengue de 2015)
+    if col_combo:
+        col_c = col_combo[0]
+        serie_combo = df_raw[col_c].dropna().astype(str)
+        if len(serie_combo) > 0:
+            linhas_texto = [col_c] + serie_combo.tolist()
+            buffer = io.StringIO("\n".join(linhas_texto))
+            try:
+                df_sub = pd.read_csv(
+                    buffer, sep=",", low_memory=False, on_bad_lines="skip"
+                )
+                df_sub.columns = [str(c).lower().strip() for c in df_sub.columns]
+                dfs_para_unir.append(df_sub)
+            except Exception:
+                pass
+
+        # Mantém a parte principal separada por ponto e vírgula
+        df_principal = df_raw.drop(columns=[col_c]).dropna(how="all")
+        dfs_para_unir.append(df_principal)
+    else:
+        dfs_para_unir.append(df_raw)
+
+    registros = []
+    for d in dfs_para_unir:
+        if d.empty:
+            continue
+
+        col_b = next(
+            (
+                c
+                for c in [
+                    "no_bairro_residencia",
+                    "nm_bairro",
+                    "bairro",
+                    "bairro_norm",
+                ]
+                if c in d.columns
+            ),
+            None,
+        )
+        col_a = next(
+            (
+                c
+                for c in ["co_cid", "id_agravo", "agravo", "tp_notificacao"]
+                if c in d.columns
+            ),
+            None,
+        )
+
+        if not col_b:
+            continue
+
+        df_c = pd.DataFrame()
+        df_c["bairro_norm"] = d[col_b].apply(normalizar_texto)
+
+        # Identificação de Dengue, Chikungunya e Zika
+        if col_a and col_a in d.columns:
+            s = d[col_a].astype(str).str.upper().str.strip()
+            df_c["is_dengue"] = s.str.contains(
+                r"^A90|^A91|DENG", regex=True, na=False
+            ).astype(int)
+            df_c["is_zika"] = s.str.contains(
+                r"^A928|^A92\.8|^U06|ZIKA", regex=True, na=False
+            ).astype(int)
+            df_c["is_chik"] = (
+                s.str.contains(r"^A920|^A92\.0|CHIK", regex=True, na=False)
+                | (s.str.startswith("A92") & (df_c["is_zika"] == 0))
+            ).astype(int)
+        elif "is_dengue" in d.columns:
+            df_c["is_dengue"] = (
+                pd.to_numeric(d["is_dengue"], errors="coerce")
+                .fillna(0)
+                .astype(int)
+            )
+            df_c["is_chik"] = (
+                pd.to_numeric(d.get("is_chik", 0), errors="coerce")
+                .fillna(0)
+                .astype(int)
+            )
+            df_c["is_zika"] = (
+                pd.to_numeric(d.get("is_zika", 0), errors="coerce")
+                .fillna(0)
+                .astype(int)
+            )
+        else:
+            df_c["is_dengue"] = 1
+            df_c["is_chik"] = 0
+            df_c["is_zika"] = 0
+
+        # Caso existam flags no dataframe
+        if "is_dengue" in d.columns:
+            df_c["is_dengue"] = np.maximum(
+                df_c["is_dengue"],
+                pd.to_numeric(d["is_dengue"], errors="coerce")
+                .fillna(0)
+                .astype(int),
+            )
+
+        registros.append(df_c)
+
+    if not registros:
+        return pd.DataFrame()
+
+    return pd.concat(registros, ignore_index=True)
+
+
 @st.cache_data
 def carregar_dados_completos():
     mesh_path = "data/raw/recife_bairros_rpa.gpkg"
@@ -183,95 +296,10 @@ def carregar_dados_completos():
                 caminho, sep=";", encoding="latin1", low_memory=False
             )
 
-        df.columns = [c.lower().strip() for c in df.columns]
-
-        col_bairro = next(
-            (
-                c
-                for c in [
-                    "no_bairro_residencia",
-                    "nm_bairro",
-                    "bairro",
-                    "bairro_norm",
-                ]
-                if c in df.columns
-            ),
-            None,
-        )
-        col_agravo = next(
-            (
-                c
-                for c in ["co_cid", "id_agravo", "agravo", "tp_notificacao"]
-                if c in df.columns
-            ),
-            None,
-        )
-
-        if col_bairro:
-            df_clean = pd.DataFrame()
-            df_clean["bairro_norm"] = df[col_bairro].apply(normalizar_texto)
-
-            # Inclusão de 2015: prioriza checar a flag is_dengue
-            if "is_dengue" in df.columns:
-                df_clean["is_dengue"] = (
-                    pd.to_numeric(df["is_dengue"], errors="coerce")
-                    .fillna(0)
-                    .astype(int)
-                )
-                df_clean["is_chik"] = (
-                    pd.to_numeric(df.get("is_chik", 0), errors="coerce")
-                    .fillna(0)
-                    .astype(int)
-                )
-                df_clean["is_zika"] = (
-                    pd.to_numeric(df.get("is_zika", 0), errors="coerce")
-                    .fillna(0)
-                    .astype(int)
-                )
-
-                if col_agravo:
-                    s = df[col_agravo].astype(str).str.upper().str.strip()
-                    cond_zika = (
-                        s.str.contains(r"^A928|^A92\.8|^U06|ZIKA", regex=True)
-                        & (df_clean["is_zika"] == 0)
-                    )
-                    cond_chik = (
-                        s.str.contains(r"^A920|^A92\.0|CHIK|^A92", regex=True)
-                        & (~cond_zika)
-                        & (df_clean["is_chik"] == 0)
-                    )
-                    cond_dengue = (
-                        s.str.contains(r"^A90|^A91|DENG", regex=True)
-                        & (df_clean["is_dengue"] == 0)
-                    )
-
-                    df_clean.loc[cond_zika, "is_zika"] = 1
-                    df_clean.loc[cond_chik, "is_chik"] = 1
-                    df_clean.loc[cond_dengue, "is_dengue"] = 1
-
-            elif col_agravo:
-                s = df[col_agravo].astype(str).str.upper().str.strip()
-                df_clean["is_dengue"] = (
-                    s.str.contains(r"^A90|^A91|DENG", regex=True, na=False)
-                ).astype(int)
-                df_clean["is_zika"] = (
-                    s.str.contains(
-                        r"^A928|^A92\.8|^U06|ZIKA", regex=True, na=False
-                    )
-                ).astype(int)
-                df_clean["is_chik"] = (
-                    s.str.contains(
-                        r"^A920|^A92\.0|CHIK", regex=True, na=False
-                    )
-                    | (s.str.startswith("A92") & (df_clean["is_zika"] == 0))
-                ).astype(int)
-            else:
-                df_clean["is_dengue"] = 1
-                df_clean["is_chik"] = 0
-                df_clean["is_zika"] = 0
-
+        df_limpo = processar_dataframe_bruto(df)
+        if not df_limpo.empty:
             agrupado = (
-                df_clean.groupby("bairro_norm")
+                df_limpo.groupby("bairro_norm")
                 .agg(
                     dengue=("is_dengue", "sum"),
                     chikungunya=("is_chik", "sum"),
@@ -280,7 +308,6 @@ def carregar_dados_completos():
                 )
                 .reset_index()
             )
-
             agrupado["ano"] = ano
             lista_processados.append(agrupado)
 

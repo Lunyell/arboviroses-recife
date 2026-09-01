@@ -18,115 +18,64 @@ st.set_page_config(
     layout="wide",
 )
 
+# Custom CSS: Melhora a usabilidade do botão da barra lateral no Mobile
+st.markdown("""
+<style>
+/* Destaca o botão da sidebar no mobile */
+button[kind="header"] {
+    background-color: #38BDF8 !important;
+    color: #070B14 !important;
+    border-radius: 8px !important;
+    padding: 4px 10px !important;
+    font-weight: bold !important;
+}
+
+button[kind="header"]::after {
+    content: " ⚙️ Filtros";
+    font-size: 0.82rem;
+    color: #070B14;
+    font-weight: 700;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # 1. Dicionário Oficial de RPAs do Recife
 RPAS_RECIFE = {
     "RPA 1 (Centro)": [
-        "RECIFE",
-        "SANTO ANTONIO",
-        "SAO JOSE",
-        "ILHA DO LEITE",
-        "BOA VISTA",
-        "CABANGA",
-        "COELHOS",
-        "SOLEDADE",
-        "ILHA JOANA BEZERRA",
-        "PAISSANDU",
-        "SANTO AMARO",
+        "RECIFE", "SANTO ANTONIO", "SAO JOSE", "ILHA DO LEITE",
+        "BOA VISTA", "CABANGA", "COELHOS", "SOLEDADE",
+        "ILHA JOANA BEZERRA", "PAISSANDU", "SANTO AMARO",
     ],
     "RPA 2 (Norte)": [
-        "ARRUDA",
-        "CAMPINA DO BARRETO",
-        "CAMPO GRANDE",
-        "ENCRUZILHADA",
-        "HIPODROMO",
-        "PEIXINHOS",
-        "PONTO DE PARADA",
-        "ROSARINHO",
-        "TORREAO",
-        "AGUANAZINHA",
-        "AGUA FRIA",
-        "ALTO SANTA TEREZINHA",
-        "BOMBA DO HEMETERIO",
-        "CAJUEIRO",
-        "FUNDAO",
-        "PORTO DA MADEIRA",
-        "BEBERIBE",
-        "DOIS UNIDOS",
-        "LINHA DO TIRO",
+        "ARRUDA", "CAMPINA DO BARRETO", "CAMPO GRANDE", "ENCRUZILHADA",
+        "HIPODROMO", "PEIXINHOS", "PONTO DE PARADA", "ROSARINHO",
+        "TORREAO", "AGUANAZINHA", "AGUA FRIA", "ALTO SANTA TEREZINHA",
+        "BOMBA DO HEMETERIO", "CAJUEIRO", "FUNDAO", "PORTO DA MADEIRA",
+        "BEBERIBE", "DOIS UNIDOS", "LINHA DO TIRO",
     ],
     "RPA 3 (Noroeste)": [
-        "AFLITOS",
-        "ALTO DO MANDU",
-        "ALTO JOSE DO PINHO",
-        "APIPUCOS",
-        "CASA AMARELA",
-        "CASA FORTE",
-        "CORREGO DO JENIPAPO",
-        "DERBY",
-        "DOIS IRMAOS",
-        "ESPINHEIRO",
-        "GRACAS",
-        "GUABIRABA",
-        "JAQUEIRA",
-        "MACAXEIRA",
-        "MONTEIRO",
-        "NOVA DESCOBERTA",
-        "PARNAMIRIM",
-        "PASSARINHO",
-        "POCO DA PANELA",
-        "SANTANA",
-        "SITIO DOS PINTOS",
-        "TAMARINEIRA",
-        "VASCO DA GAMA",
-        "BREJO DA GUABIRABA",
-        "BREJO DE BEBERIBE",
-        "PAU FERRO",
-        "MANGABEIRA",
-        "ALTO JOSE BONIFACIO",
+        "AFLITOS", "ALTO DO MANDU", "ALTO JOSE DO PINHO", "APIPUCOS",
+        "CASA AMARELA", "CASA FORTE", "CORREGO DO JENIPAPO", "DERBY",
+        "DOIS IRMAOS", "ESPINHEIRO", "GRACAS", "GUABIRABA", "JAQUEIRA",
+        "MACAXEIRA", "MONTEIRO", "NOVA DESCOBERTA", "PARNAMIRIM",
+        "PASSARINHO", "POCO DA PANELA", "SANTANA", "SITIO DOS PINTOS",
+        "TAMARINEIRA", "VASCO DA GAMA", "BREJO DA GUABIRABA",
+        "BREJO DE BEBERIBE", "PAU FERRO", "MANGABEIRA", "ALTO JOSE BONIFACIO",
     ],
     "RPA 4 (Oeste)": [
-        "CORDEIRO",
-        "ILHA DO RETIRO",
-        "IPUTINGA",
-        "MADALENA",
-        "PRADO",
-        "TORRE",
-        "ZUMBI",
-        "ENGENHO DO MEIO",
-        "TORROES",
-        "VARZEA",
-        "CAXANGA",
-        "CIDADE UNIVERSITARIA",
+        "CORDEIRO", "ILHA DO RETIRO", "IPUTINGA", "MADALENA", "PRADO",
+        "TORRE", "ZUMBI", "ENGENHO DO MEIO", "TORROES", "VARZEA",
+        "CAXANGA", "CIDADE UNIVERSITARIA",
     ],
     "RPA 5 (Sudoeste)": [
-        "AFOGADOS",
-        "AREIAS",
-        "BARRO",
-        "BONGI",
-        "CACOTE",
-        "COQUEIRAL",
-        "CURADO",
-        "ESTANCIA",
-        "JARDIM SAO PAULO",
-        "JIQUIÁ",
-        "JIQUIA",
-        "MANGUEIRA",
-        "MUSTARDINHA",
-        "SAN MARTIN",
-        "SANCHO",
-        "TEJIPIO",
-        "TOTÓ",
-        "TOTO",
+        "AFOGADOS", "AREIAS", "BARRO", "BONGI", "CACOTE", "COQUEIRAL",
+        "CURADO", "ESTANCIA", "JARDIM SAO PAULO", "JIQUIÁ", "JIQUIA",
+        "MANGUEIRA", "MUSTARDINHA", "SAN MARTIN", "SANCHO", "TEJIPIO",
+        "TOTÓ", "TOTO",
     ],
     "RPA 6 (Sul)": [
-        "BOA VIAGEM",
-        "BRASILIA TEIMOSA",
-        "IMBIRIBEIRA",
-        "IPSEP",
-        "PINA",
-        "IBURA",
-        "JORDAO",
-        "COHAB",
+        "BOA VIAGEM", "BRASILIA TEIMOSA", "IMBIRIBEIRA", "IPSEP",
+        "PINA", "IBURA", "JORDAO", "COHAB",
     ],
 }
 
@@ -168,7 +117,6 @@ def processar_dataframe_bruto(df_raw):
             except Exception:
                 pass
 
-        # Mantém a parte principal separada por ponto e vírgula
         df_principal = df_raw.drop(columns=[col_c]).dropna(how="all")
         dfs_para_unir.append(df_principal)
     else:
@@ -241,7 +189,6 @@ def processar_dataframe_bruto(df_raw):
             df_c["is_chik"] = 0
             df_c["is_zika"] = 0
 
-        # Caso existam flags no dataframe
         if "is_dengue" in d.columns:
             df_c["is_dengue"] = np.maximum(
                 df_c["is_dengue"],
@@ -395,14 +342,32 @@ st.sidebar.download_button(
     mime="text/csv",
 )
 
+# Créditos e Contato na Barra Lateral
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     """
-    **Desenvolvimento:** **Luan Lucena**  
-    *Graduando em Geografia (Bacharelado)*  
-    *Universidade Federal de Pernambuco (UFPE)*  
-    *Grupo NEXUS – Sociedade & Natureza*
-    """
+    **Desenvolvimento autoral:**  
+    **Luan Lucena**  
+    *Graduando em Geografia (Bacharelado) – UFPE*  
+    *Membro do Grupo NEXUS (Sociedade & Natureza)*
+    
+    <div style="margin-top: 14px; margin-bottom: 10px;">
+        <a href="https://www.instagram.com/obs.sauderecife" target="_blank" style="text-decoration: none; display: flex; align-items: center; gap: 8px; color: #E1306C; font-weight: 600; font-size: 0.95rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+            </svg>
+            <span style="color: #38BDF8;">@obs.sauderecife</span>
+        </a>
+    </div>
+
+    <div style="font-size: 0.85rem; color: #94A3B8; margin-top: 8px;">
+        💬 <strong>Dúvidas ou feedbacks?</strong><br>
+        <a href="mailto:luan.lucena@ufpe.br" style="color: #38BDF8; text-decoration: none;">luan.lucena@ufpe.br</a>
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
 plotly_config = {
@@ -663,10 +628,11 @@ with col_rpa:
 st.markdown("---")
 st.markdown(
     """
-    <div style='text-align: center; color: #888888; font-size: 13px; line-height: 1.6;'>
+    <div style='text-align: center; color: #888888; font-size: 13px; line-height: 1.6; padding-bottom: 20px;'>
         <b>Painel de Análise Espaço-Temporal de Arboviroses (Recife - PE)</b><br>
-        Desenvolvimento: <b>Luan Lucena</b> | Graduando em Geografia (Bacharelado) pela <b>Universidade Federal de Pernambuco (UFPE)</b> | <b>Grupo NEXUS (Sociedade & Natureza)</b><br>
-        Fonte dos dados: Portal de Dados Abertos da Prefeitura do Recife (Sinan / PCR)
+        Desenvolvimento autoral: <b>Luan Lucena</b> | Graduando em Geografia (Bacharelado) pela <b>Universidade Federal de Pernambuco (UFPE)</b> | Membro do <b>Grupo NEXUS (Sociedade & Natureza)</b><br>
+        Fonte dos dados: Portal de Dados Abertos da Prefeitura do Recife (Sinan / PCR)<br>
+        <span style="color: #38BDF8;">Dúvidas, sugestões ou feedbacks?</span> Entre em contato: <a href="mailto:luan.lucena@ufpe.br" style="color: #38BDF8; text-decoration: underline;">luan.lucena@ufpe.br</a>
     </div>
     """,
     unsafe_allow_html=True,

@@ -18,11 +18,12 @@ st.set_page_config(
     layout="wide",
 )
 
-# Custom CSS: Melhora a usabilidade do botão da barra lateral no Mobile
+# Custom CSS: Estiliza exclusivamente o botão de controle da Sidebar no mobile
 st.markdown("""
 <style>
-/* Destaca o botão da sidebar no mobile */
-button[kind="header"] {
+/* Alvo específico no botão de abrir/fechar a barra lateral */
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stSidebarCollapseButton"] button {
     background-color: #38BDF8 !important;
     color: #070B14 !important;
     border-radius: 8px !important;
@@ -30,8 +31,8 @@ button[kind="header"] {
     font-weight: bold !important;
 }
 
-button[kind="header"]::after {
-    content: " ⚙️ Filtros";
+[data-testid="stSidebarCollapsedControl"] button::after {
+    content: " Filtros";
     font-size: 0.82rem;
     color: #070B14;
     font-weight: 700;

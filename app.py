@@ -19,19 +19,59 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="stSidebarCollapseButton"] button {
+/* 1. Estilização do botão de abrir a Sidebar (Mobile & Desktop) */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"] {
+    display: inline-flex !important;
+    align-items: center !important;
     background-color: #38BDF8 !important;
     color: #070B14 !important;
-    border-radius: 8px !important;
-    padding: 4px 10px !important;
-    font-weight: bold !important;
+    border-radius: 20px !important;
+    padding: 6px 14px !important;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4) !important;
+    cursor: pointer !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 999999 !important;
 }
-[data-testid="stSidebarCollapsedControl"] button::after {
-    content: " Filtros";
-    font-size: 0.82rem;
-    color: #070B14;
-    font-weight: 700;
+
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="collapsedControl"] button {
+    background: transparent !important;
+    color: #070B14 !important;
+    border: none !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg {
+    fill: #070B14 !important;
+    stroke: #070B14 !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+[data-testid="stSidebarCollapsedControl"]::after,
+[data-testid="collapsedControl"]::after {
+    content: " ⚙️ Filtros" !important;
+    font-size: 0.88rem !important;
+    color: #070B14 !important;
+    font-weight: 800 !important;
+    margin-left: 6px !important;
+}
+
+/* 2. Banner de dica mobile */
+.dica-mobile {
+    background: rgba(56, 189, 248, 0.12);
+    border-left: 4px solid #38BDF8;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    color: #E2E8F0;
+    margin-bottom: 16px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -247,6 +287,13 @@ plotly_config = {
     "responsive": True,
     "scrollZoom": False,
 }
+
+# Aviso para orientar visualização mobile
+st.markdown("""
+<div class="dica-mobile">
+    📱 <b>Dica no celular:</b> Toque no botão <b>⚙️ Filtros</b> (canto superior esquerdo) para selecionar anos, bairros e doenças.
+</div>
+""", unsafe_allow_html=True)
 
 opcoes_modulo = ["🦟 Arboviroses (Dengue, Chik, Zika)", "🐀 Leptospirose (Série SINAN)"]
 modulo_ativo = st.radio(
@@ -464,7 +511,7 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
         st.plotly_chart(fig_rpa, use_container_width=True, config=plotly_config)
 
 # ==============================================================================
-# 2. VISÃO: LEPTOSPIROSE (TEXTO COMPLETO RESTAURADO)
+# 2. VISÃO: LEPTOSPIROSE (SÉRIE SINAN)
 # ==============================================================================
 else:
     st.sidebar.header("⚙️ Filtros de Leptospirose")

@@ -29,7 +29,6 @@ img_logo_b64 = get_base64_image("perfil_observatorio.png")
 
 st.markdown("""
 <style>
-/* Card de instrução mobile */
 .aviso-filtros-mobile {
     display: inline-flex;
     align-items: center;
@@ -47,7 +46,6 @@ st.markdown("""
     color: #38BDF8;
 }
 
-/* Hero Banner com tom azulado equilibrado e elegante */
 .hero-container {
     position: relative;
     border-radius: 18px;
@@ -65,7 +63,6 @@ st.markdown("""
     justify-content: flex-start;
 }
 
-/* Skyline posicionado estritamente na base */
 .hero-container::before {
     content: "";
     position: absolute;
@@ -120,7 +117,6 @@ st.markdown("""
     z-index: 2;
 }
 
-/* Estilo dos cards da página inicial */
 .home-card {
     background-color: #0E131F;
     border: 1px solid #1E293B;
@@ -237,7 +233,7 @@ def processar_dataframe_bruto(df_raw):
             s = d[col_a].astype(str).str.upper().str.strip()
             df_c["is_dengue"] = s.str.contains(r"^A90|^A91|DENG", regex=True, na=False).astype(int)
             df_c["is_zika"] = s.str.contains(r"^A928|^A92\.8|^U06|ZIKA", regex=True, na=False).astype(int)
-            df_c["is_chik"] = (s.str.contains(r"^A920|^A92\.0|CHIK", regex=True, na=False) | (s.str.startswith("A92") & (df_c["is_zika"] == 0))).astype(int)
+            df_c["is_chik"] = s.str.contains(r"^A920|^A92\.0|CHIK", regex=True, na=False).astype(int)
         elif "is_dengue" in d.columns:
             df_c["is_dengue"] = pd.to_numeric(d["is_dengue"], errors="coerce").fillna(0).astype(int)
             df_c["is_chik"] = pd.to_numeric(d.get("is_chik", 0), errors="coerce").fillna(0).astype(int)
@@ -347,11 +343,9 @@ plotly_config = {
     "scrollZoom": False,
 }
 
-# Controle de estado da página ativa
 if "modulo_ativo" not in st.session_state:
     st.session_state.modulo_ativo = "inicio"
 
-# BARRA DE NAVEGAÇÃO SUPERIOR (Aparece apenas dentro dos módulos)
 if st.session_state.modulo_ativo != "inicio":
     col_nav1, col_nav2 = st.columns([1, 4])
     with col_nav1:
@@ -440,7 +434,6 @@ if st.session_state.modulo_ativo == "inicio":
 
     st.markdown("---")
 
-    # Texto fluido e autoral focado na Geografia Urbana e Crítica do Recife
     st.markdown("""
     ### 🎯 Por que a Geografia da Saúde no Recife?
 
@@ -528,7 +521,7 @@ elif st.session_state.modulo_ativo == "arbo":
 
     st.caption(
         f"Período: **{anos_txt}** | Agravo: **{tipo_doenca}** | Métrica: **{label_metrica}**<br>"
-        f"📍 <span style='color: #94A3B8;'><b>Fonte dos Dados:</b> Portal de Dados Abertos do Recife (PCR / Sesau)</span>",
+        f"📍 <span style='color: #94A3B8;'><b>Fonte dos Dados:</b> Microdados do SINAN / DATASUS (Portal de Dados Abertos da PCR)</span>",
         unsafe_allow_html=True
     )
 
@@ -539,6 +532,19 @@ elif st.session_state.modulo_ativo == "arbo":
     kpi4.metric("Zika", f"{gdf_mapa['zika'].sum():,}".replace(",", "."))
 
     st.markdown("---")
+
+    # 💡 Nota Metodológica Explicativa sobre Casos Notificados vs. Confirmados
+    with st.expander("ℹ️ Nota Metodológica: O que significam estes dados de casos?", expanded=False):
+        st.markdown("""
+        ### ⚠️ Atenção: Casos Notificados (Suspeitos) vs. Casos Confirmados
+        Os dados exibidos neste painel provêm dos microdados brutos do **SINAN (Sistema de Informação de Agravos de Notificação) / DATASUS** disponibilizados pelo Portal de Dados Abertos da Prefeitura do Recife. 
+        
+        * **O que são:** Tratam-se de **casos notificados e suspeitos**, e não de confirmações laboratoriais finais fechadas. 
+        * **Como funciona na prática:** Quando um cidadão (ex: *Seu Pedro*) chega a uma unidade de saúde apresentando um quadro sindrômico compatível (febre, dor nas articulações ou exantema), a equipe médica preenche uma ficha de notificação inicial com suspeita clínica — muitas vezes registrando como arbovirose genérica ou suspeita de Dengue/Zika. Essa demanda inicial entra imediatamente no sistema para orientar o monitoramento rápido da rede de saúde.
+        * **O filtro posterior:** Meses mais tarde, após exames laboratoriais detalhados e o encerramento das investigações epidemiológicas pela Secretaria de Saúde, parte desses registros pode ser descartada ou reclassificada. 
+        
+        **Por que utilizamos os dados brutos no Observatório?** Trabalhar com os casos notificados é o padrão ouro na análise geoespacial de saúde pública, pois revela a **pressão real e a demanda assistencial** que cada território enfrentou, independentemente do laudo laboratorial final.
+        """)
 
     with st.expander("ℹ️ Entenda as Arboviroses e por que o mapeamento no Recife é essencial", expanded=False):
         st.markdown("""
@@ -563,7 +569,7 @@ elif st.session_state.modulo_ativo == "arbo":
         ### 🗺️ Por que mapear os dados bairro a bairro é tão importante?
         Olhar apenas para o número total de casos de toda a cidade esconde a realidade de cada comunidade. Mapear os dados no nível de bairros e RPAs (Regiões Político-Administrativas) faz toda a diferença porque:
 
-        * **Mostra onde agir primeiro:** Permite que a vigilância em saúde saiba exatamente quais bairros estão virando focos (*hotspots*) de transmissão antes que a doença se espalhe para a cidade inteira.
+        * **Mostra onde agir primeiro:** Permite que a vigilância in saúde saiba exatamente quais bairros estão virando focos (*hotspots*) de transmissão antes que a doença se espalhe para a cidade inteira.
         * **Direciona os recursos públicos:** Facilita o envio de agentes de endemias, aplicação de larvicidas e mutirões de limpeza para os locais mais críticos, otimizando o dinheiro público e salvando vidas.
         * **Informa a população:** Quando você sabe que o seu bairro ou a sua região está com muitos casos registrados, os cuidados individuais e comunitários aumentam naturalmente.
         * **Democratiza a informação:** Transforma dados brutos e complexos em gráficos e mapas simples de entender, aproximando a pesquisa científica da sociedade e fortalecendo o controle social.
@@ -576,9 +582,17 @@ elif st.session_state.modulo_ativo == "arbo":
     with col_mapa:
         st.subheader("Distribuição Espacial")
         st.caption("💡 **Para que serve:** Espacializa os focos de transmissão na malha urbana. Passe o cursor sobre o bairro para inspecionar notificações e taxas.")
-        val_max = max(float(gdf_mapa[col_metrica].max()), 1.0)
+        
+        # Teto Máximo Global Fixo e Balanceado em 3.500 para Casos Absolutos (Calibrado no pior ano isolado)
+        if modo_visualizacao == "Casos Absolutos (Volume)":
+            val_max = 3500.0
+            label_escala = f"{label_metrica} ({tipo_doenca}) [Escala Global Fixa]"
+        else:
+            val_max = 150.0
+            label_escala = f"{label_metrica} ({tipo_doenca}) [Escala Global Fixa]"
+
         palette = ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
-        colormap = cm.LinearColormap(colors=palette, vmin=0, vmax=val_max, caption=f"{label_metrica} ({tipo_doenca})")
+        colormap = cm.LinearColormap(colors=palette, vmin=0, vmax=val_max, caption=label_escala)
 
         m = folium.Map(location=[-8.0580, -34.9200], zoom_start=11, tiles="OpenStreetMap")
         m.get_root().html.add_child(folium.Element("""
@@ -596,8 +610,8 @@ elif st.session_state.modulo_ativo == "arbo":
 
         folium.GeoJson(
             gdf_mapa,
-            style_function=lambda feature, cmap=colormap, col=col_metrica: {
-                "fillColor": cmap(feature["properties"][col]), "color": "#111111", "weight": 1.0, "fillOpacity": 0.95,
+            style_function=lambda feature, cmap=colormap, col=col_metrica, v_max=val_max: {
+                "fillColor": cmap(min(feature["properties"][col], v_max)), "color": "#111111", "weight": 1.0, "fillOpacity": 0.95,
             },
             tooltip=tooltip,
         ).add_to(m)
@@ -816,7 +830,7 @@ else:
             gdf_mapa_lep["visivel"] = True
 
         col_met_lep = "taxa_incidencia_ds" if "Incidência" in modo_mapa_lepto else "casos_estimados"
-        lbl_met_lep = "Taxa Anual / 100k hab" if "Incidência" in modo_mapa_lepto else "Casos Estimados"
+        lbl_met_lep = "Média Taxa Anual / 100k hab" if "Incidência" in modo_mapa_lepto else "Casos Estimados"
 
         col_mapa_lep, col_rank_lep = st.columns([1.6, 1.0])
 
@@ -825,8 +839,8 @@ else:
             
             if "Incidência" in modo_mapa_lepto:
                 val_max_lep = 80.0
-                caption_escala = f"{lbl_met_lep} (Escala Comparativa: 0 a 80)"
-                st.caption("💡 **Escala Fixa Comparativa:** Anos calmos (como 2015 ou 2020) ficam em tons amarelos claros; apenas anos de catástrofe climática (como 2022) atingem o vermelho escuro.")
+                caption_escala = f"{lbl_met_lep} (Escala Fixa Global: 0 a 80)"
+                st.caption("💡 **Escala Fixa Global:** Média anualizada proporcional ao período selecionado, preservando o contraste e a comparabilidade cartográfica.")
             else:
                 val_max_lep = max(float(gdf_mapa_lep[col_met_lep].max()), 1.0)
                 caption_escala = f"{lbl_met_lep} ({anos_lep_txt})"
@@ -849,7 +863,7 @@ else:
 
             tooltip_lep = folium.GeoJsonTooltip(
                 fields=[col_nome_bairro, "distrito_sanitario", "nivel_risco", "taxa_incidencia_ds", "casos_estimados"],
-                aliases=["Bairro:", "Distrito Sanitário:", "Grau de Risco:", "Taxa Anual (100k hab):", "Casos Estimados:"],
+                aliases=["Bairro:", "Distrito Sanitário:", "Grau de Risco:", "Média Taxa Anual (100k hab):", "Casos Estimados:"],
                 localize=True,
                 style="background-color: #ffffff; color: #111111; border: 1px solid #333; border-radius: 4px; padding: 8px; font-family: sans-serif; font-size: 12px;"
             )
@@ -973,9 +987,6 @@ else:
             )
             st.plotly_chart(fig_sazonal, use_container_width=True, config=plotly_config)
 
-# ==============================================================================
-# CRÉDITOS FIXOS NA SIDEBAR & RODAPÉ LIMPO E MODULAR
-# ==============================================================================
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     """

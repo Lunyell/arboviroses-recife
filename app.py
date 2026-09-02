@@ -1,3 +1,4 @@
+import base64
 import glob
 import io
 import os
@@ -12,11 +13,19 @@ import streamlit as st
 from streamlit_folium import st_folium
 
 st.set_page_config(
-    page_title="Painel Epidemiológico | Recife",
-    page_icon="🦟",
+    page_title="Observatório de Saúde Urbana | Recife",
+    page_icon="🏙️",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+
+def get_base64_image(image_path):
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+    return None
+
+img_logo_b64 = get_base64_image("perfil_observatorio.png")
 
 st.markdown("""
 <style>
@@ -36,6 +45,92 @@ st.markdown("""
 }
 .aviso-filtros-mobile b {
     color: #38BDF8;
+}
+
+/* Hero Banner com tom azulado equilibrado e elegante */
+.hero-container {
+    position: relative;
+    border-radius: 18px;
+    padding: 50px 24px 75px 24px;
+    min-height: 380px;
+    margin-bottom: 24px;
+    background: linear-gradient(180deg, #0A162C 0%, #112244 100%);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 12px 36px -8px rgba(56, 189, 248, 0.3);
+    text-align: center;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Skyline posicionado estritamente na base */
+.hero-container::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background-repeat: repeat-x;
+    background-position: bottom;
+    background-size: 400px 80px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 100" fill="none"><path d="M0 100V65H20V100H25V40H50V100H55V50H75V100H85V30H105V100H115V55H135V100H140V20H165V100H175V60H195V100H205V35H230V100H235V70H255V100H265V15H290V100H300V45H320V100H330V60H350V100H360V25H385V100H400V100" fill="%230284C7" fill-opacity="0.18"/><path d="M10 100V75H25V100H35V50H55V100H65V60H80V100H95V45H110V100H125V65H140V100H150V35H170V100H185V70H200V100H215V50H230V100H245V80H260V100H275V30H295V100H310V55H325V100H340V70H355V100H370V40H390V100" fill="%2338BDF8" fill-opacity="0.32"/></svg>');
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+.hero-logo {
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    border: 2.5px solid #38BDF8;
+    box-shadow: 0 0 28px rgba(56, 189, 248, 0.55);
+    margin-bottom: 16px;
+    object-fit: cover;
+}
+
+.hero-title {
+    font-size: 2.35rem;
+    font-weight: 800;
+    color: #F8FAFC;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hero-subtitle {
+    font-size: 1.08rem;
+    color: #38BDF8;
+    font-weight: 600;
+    margin-bottom: 14px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hero-desc {
+    max-width: 820px;
+    margin: 0 auto;
+    color: #E2E8F0;
+    font-size: 0.96rem;
+    line-height: 1.65;
+    font-weight: 400;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+    position: relative;
+    z-index: 2;
+}
+
+/* Estilo dos cards da página inicial */
+.home-card {
+    background-color: #0E131F;
+    border: 1px solid #1E293B;
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 12px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.home-card:hover {
+    border-color: #38BDF8;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -252,20 +347,114 @@ plotly_config = {
     "scrollZoom": False,
 }
 
-opcoes_modulo = ["🦟 Arboviroses (Dengue, Chik, Zika)", "🐀 Leptospirose (Série SINAN)"]
-modulo_ativo = st.radio(
-    "Selecione o Painel Epidemiológico:",
-    options=opcoes_modulo,
-    horizontal=True,
-    label_visibility="collapsed",
-)
+# Controle de estado da página ativa
+if "modulo_ativo" not in st.session_state:
+    st.session_state.modulo_ativo = "inicio"
 
-st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+# BARRA DE NAVEGAÇÃO SUPERIOR (Aparece apenas dentro dos módulos)
+if st.session_state.modulo_ativo != "inicio":
+    col_nav1, col_nav2 = st.columns([1, 4])
+    with col_nav1:
+        if st.button("← Voltar ao Início", key="btn_voltar_home"):
+            st.session_state.modulo_ativo = "inicio"
+            st.rerun()
+    with col_nav2:
+        opcoes_modulos_internos = [
+            "🦟 Arboviroses (Dengue, Chik, Zika)",
+            "🐀 Leptospirose (Série SINAN)"
+        ]
+        idx_padrao = 0 if st.session_state.modulo_ativo == "arbo" else 1
+        escolha = st.radio(
+            "Alternar Módulo:",
+            options=opcoes_modulos_internos,
+            index=idx_padrao,
+            horizontal=True,
+            label_visibility="collapsed",
+            key="radio_interno"
+        )
+        if escolha == "🦟 Arboviroses (Dengue, Chik, Zika)" and st.session_state.modulo_ativo != "arbo":
+            st.session_state.modulo_ativo = "arbo"
+            st.rerun()
+        elif escolha == "🐀 Leptospirose (Série SINAN)" and st.session_state.modulo_ativo != "lepto":
+            st.session_state.modulo_ativo = "lepto"
+            st.rerun()
+
+    st.markdown("<div style='margin-bottom: 15px;'></div>", unsafe_allow_html=True)
+
+# ==============================================================================
+# 0. VISÃO: PÁGINA INICIAL / BOAS-VINDAS
+# ==============================================================================
+if st.session_state.modulo_ativo == "inicio":
+    tag_img = f'<img src="data:image/png;base64,{img_logo_b64}" class="hero-logo" alt="Logo">' if img_logo_b64 else ''
+    
+    st.markdown(f"""
+    <div class="hero-container">
+        {tag_img}
+        <div class="hero-title">Observatório de Saúde Urbana do Recife</div>
+        <div class="hero-subtitle">Inteligência Geoespacial, Vigilância Epidemiológica e Vulnerabilidade Territorial</div>
+        <p class="hero-desc">
+            Plataforma pública de análise espaço-temporal e democratização de dados epidemiológicos 
+            do município do Recife. Nosso objetivo é integrar dados oficiais de saúde pública à geografia urbana, 
+            evidenciando como a infraestrutura sanitária, o relevo e o clima condicionam a distribuição de doenças na capital pernambucana.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_c1, col_c2 = st.columns(2)
+
+    with col_c1:
+        st.markdown("""
+        <div class="home-card">
+            <h3 style="color: #F87171; margin-top: 0;">🦟 Painel de Arboviroses</h3>
+            <p style="color: #CBD5E1; font-size: 0.92rem; line-height: 1.5;">
+                Mapeamento detalhado e monitoramento histórico de <b>Dengue, Chikungunya e Zika</b> no nível de bairros e RPAs.
+            </p>
+            <ul style="color: #94A3B8; font-size: 0.88rem; padding-left: 18px; margin-bottom: 0;">
+                <li>Distribuição espacial contínua pelos 94 bairros oficiais;</li>
+                <li>Filtros individuais por vírus e anos (2015 a 2024);</li>
+                <li>Séries temporais e ranking das localidades mais vulneráveis.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Acessar Módulo de Arboviroses →", key="btn_home_arbo", use_container_width=True):
+            st.session_state.modulo_ativo = "arbo"
+            st.rerun()
+
+    with col_c2:
+        st.markdown("""
+        <div class="home-card">
+            <h3 style="color: #FBBF24; margin-top: 0;">🐀 Vigilância: Leptospirose</h3>
+            <p style="color: #CBD5E1; font-size: 0.92rem; line-height: 1.5;">
+                Análise hidro-sanitária e comportamental da série histórica de <b>Leptospirose (SINAN / DATASUS)</b>.
+            </p>
+            <ul style="color: #94A3B8; font-size: 0.88rem; padding-left: 18px; margin-bottom: 0;">
+                <li>Mapeamento de risco por bacias hidrográficas e Distritos Sanitários;</li>
+                <li>Escala fixa comparativa para evidenciar o impacto de catástrofes extremas (2022);</li>
+                <li>Ciclo sazonal médio associado ao calendário de chuvas do Recife.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Acessar Módulo de Leptospirose →", key="btn_home_lepto", use_container_width=True):
+            st.session_state.modulo_ativo = "lepto"
+            st.rerun()
+
+    st.markdown("---")
+
+    # Texto fluido e autoral focado na Geografia Urbana e Crítica do Recife
+    st.markdown("""
+    ### 🎯 Por que a Geografia da Saúde no Recife?
+
+    A Geografia da Saúde vai muito além do mapeamento de epidemias: ela compreende o espaço urbano como um produto social onde as desigualdades se materializam e determinam o acesso à vida e à saúde. No Recife, essa leitura territorial é urgente. Estamos diante de uma metrópole marcada por uma profunda fragmentação socioespacial, fruto de um modelo de desenvolvimento que historicamente empurrou as populações de menor renda para as áreas de maior vulnerabilidade ambiental — seja nos vales sujeitos a alagamentos crônicos ou nas encostas íngremes e susceptíveis a deslizamentos.
+
+    Pensar a saúde a partir da Geografia Urbana no Recife significa entender que o território não é um mero palco neutro, mas um agente ativo no processo saúde-doença. A forma como a cidade foi drenada, aterrada e loteada ao longo dos séculos moldou os fluxos de circulação e a exposição aos riscos. Quando discutimos saneamento inadequado, déficit habitacional, precariedade na coleta de resíduos ou falhas no abastecimento de água, estamos falando de determinantes sociais que precedem qualquer agravo clínico.
+
+    O propósito deste Observatório é justamente iluminar essas engrenagens invisíveis do espaço urbano. Ao cruzar dados epidemiológicos oficiais com a nossa malha de bairros, RPAs e Distritos Sanitários, buscamos traduzir a complexidade socioespacial do Recife em cartografia analítica aberta. Mais do que exibir números, queremos fornecer ferramentas teóricas e visuais para compreender que a luta por saúde urbana é, em sua essência, uma luta por justiça espacial, direito à cidade e dignidade humana.
+    """)
 
 # ==============================================================================
 # 1. VISÃO: ARBOVIROSES
 # ==============================================================================
-if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
+elif st.session_state.modulo_ativo == "arbo":
     st.sidebar.header("⚙️ Filtros de Arboviroses")
 
     anos_disponiveis = sorted(df_consolidado["ano"].dropna().unique().astype(int))
@@ -358,7 +547,7 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
 
         * **Dengue:** Provoca febre alta e repentina, dor de cabeça muito forte, dor atrás dos olhos e dores musculares intensas (sensação de "corpo quebrado"). Em casos graves, a dengue pode causar sangramentos, queda brusca de pressão e levar à internação em UTI. Como existem 4 sorotipos diferentes do vírus, uma pessoa pode ter dengue até quatro vezes, sendo que as reinfecções costumam ter risco aumentado de gravidade.
         * **Chikungunya:** É conhecida pelas dores articulares (nas "juntas") extremamente intensas e debilitantes. A pessoa muitas vezes mal consegue caminhar ou segurar objetos. O grande desafio da Chikungunya é que, mesmo depois que a febre passa, as dores nas articulações podem se tornar crônicas e durar meses ou até anos, prejudicando gravemente a rotina de trabalho e a qualidade de vida.
-        * **Zika:** Geralmente causa sintomas mais leves no momento da infecção, como manchas vermelhas na pele que coçam muito (exantema), olhos vermelhos e febre baixa. No entanto, o Zika trouxe um impacto histórico mundial para o Recife: a infecção em mulheres grávidas pode provocar a **Síndrome da Zika Congênita** (com casos de microcefalia nos bebês), além de estar associada a complicações neurológicas como a肌Síndrome de Guillain-Barré.
+        * **Zika:** Geralmente causa sintomas mais leves no momento da infecção, como manchas vermelhas na pele que coçam muito (exantema), olhos vermelhos e febre baixa. No entanto, o Zika trouxe um impacto histórico mundial para o Recife: a infecção em mulheres grávidas pode provocar a **Síndrome da Zika Congênita** (com casos de microcefalia nos bebês), além de estar associada a complicações neurológicas como a Síndrome de Guillain-Barré.
 
         ---
 
@@ -818,7 +1007,7 @@ st.markdown("---")
 st.markdown(
     """
     <div style='text-align: center; color: #888888; font-size: 13px; line-height: 1.6; padding-bottom: 20px;'>
-        <b>Painel de Vigilância Epidemiológica e Análise Espaço-Temporal (Recife - PE)</b><br>
+        <b>Observatório de Saúde Urbana do Recife</b><br>
         Desenvolvimento autoral: <b>Luan Lucena</b> | Graduando em Geografia (Bacharelado) pela <b>Universidade Federal de Pernambuco (UFPE)</b> | Membro do <b>Grupo NEXUS (Sociedade & Natureza)</b><br>
         <span style="color: #38BDF8;">Dúvidas, sugestões ou feedbacks?</span> Entre em contato: <a href="mailto:luan.lucena@ufpe.br" style="color: #38BDF8; text-decoration: underline;">luan.lucena@ufpe.br</a>
     </div>

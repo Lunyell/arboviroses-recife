@@ -1,3 +1,4 @@
+cat << 'EOF' > app.py
 import glob
 import io
 import os
@@ -35,19 +36,6 @@ st.markdown("""
 }
 </style>
 """, unsafe_allow_html=True)
-
-def formatar_anos_texto(anos_lista):
-    if not anos_lista:
-        return ""
-    anos_ord = sorted(list(set(anos_lista)))
-    if len(anos_ord) == 1:
-        return str(anos_ord[0])
-    eh_continuo = (anos_ord[-1] - anos_ord[0] + 1) == len(anos_ord)
-    if eh_continuo:
-        return f"{anos_ord[0]}–{anos_ord[-1]}"
-    if len(anos_ord) <= 4:
-        return ", ".join(map(str, anos_ord))
-    return f"{anos_ord[0]}...{anos_ord[-1]} ({len(anos_ord)} anos selecionados)"
 
 RPAS_RECIFE = {
     "RPA 1 (Centro)": [
@@ -142,7 +130,7 @@ def processar_dataframe_bruto(df_raw):
         elif "is_dengue" in d.columns:
             df_c["is_dengue"] = pd.to_numeric(d["is_dengue"], errors="coerce").fillna(0).astype(int)
             df_c["is_chik"] = pd.to_numeric(d.get("is_chik", 0), errors="coerce").fillna(0).astype(int)
-            df_c["is_zika"] = pd.to_numeric(d.get("zika", 0), errors="coerce").fillna(0).astype(int)
+            df_c["is_zika"] = pd.to_numeric(d.get("is_zika", 0), errors="coerce").fillna(0).astype(int)
         elif "dengue" in d.columns:
             df_c["is_dengue"] = pd.to_numeric(d["dengue"], errors="coerce").fillna(0).astype(int)
             df_c["is_chik"] = pd.to_numeric(d.get("chikungunya", 0), errors="coerce").fillna(0).astype(int)
@@ -325,12 +313,8 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
     )
 
     st.title("🦟 Painel de Arboviroses | Recife")
-    anos_txt = formatar_anos_texto(anos_selecionados)
-    st.caption(
-        f"Período: **{anos_txt}** | Agravo: **{tipo_doenca}** | Métrica: **{label_metrica}**<br>"
-        f"📍 <span style='color: #94A3B8;'><b>Fonte dos Dados:</b> Portal de Dados Abertos do Recife (PCR / Sesau)</span>",
-        unsafe_allow_html=True
-    )
+    anos_txt = f"{min(anos_selecionados)}–{max(anos_selecionados)}" if len(anos_selecionados) > 1 else str(anos_selecionados[0])
+    st.caption(f"Período Selecionado: **{anos_txt}** | Agravo: **{tipo_doenca}** | Métrica: **{label_metrica}**")
 
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     kpi1.metric("Total de Casos", f"{gdf_mapa['total_casos'].sum():,}".replace(",", "."))
@@ -464,7 +448,7 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
         st.plotly_chart(fig_rpa, use_container_width=True, config=plotly_config)
 
 # ==============================================================================
-# 2. VISÃO: LEPTOSPIROSE (TEXTO COMPLETO RESTAURADO)
+# 2. VISÃO: LEPTOSPIROSE
 # ==============================================================================
 else:
     st.sidebar.header("⚙️ Filtros de Leptospirose")
@@ -514,23 +498,18 @@ else:
     if df_lep_view.empty:
         st.warning("⚠️ Execute `python src/python/06_process_leptospirose_distritos.py` para gerar a base de risco.")
     else:
-        anos_lep_txt = formatar_anos_texto(anos_lep_sel)
-        st.caption(
-            f"Período: **{anos_lep_txt}** | Métrica: **{modo_mapa_lepto}**<br>"
-            f"📍 <span style='color: #94A3B8;'><b>Fontes dos Dados:</b> SINAN / DATASUS (Série Histórica Municipal) & Diretoria Executiva de Vigilância à Saúde (Sesau/Cievs Recife - Distritos Sanitários)</span>",
-            unsafe_allow_html=True
-        )
+        anos_lep_txt = f"{min(anos_lep_sel)}–{max(anos_lep_sel)}" if len(anos_lep_sel) > 1 else str(anos_lep_sel[0])
+        st.caption(f"Período Selecionado: **{anos_lep_txt}** | Agravo: **Leptospirose (SINAN / DATASUS)** | Métrica: **{modo_mapa_lepto}**")
 
         tot_lep = int(df_lep_view["total_ano"].sum())
         media_lep = df_lep_view["total_ano"].mean()
         pico_idx = df_lep_view["total_ano"].idxmax()
         ano_pico = int(df_lep_view.loc[pico_idx, "ano"])
         casos_pico = int(df_lep_view.loc[pico_idx, "total_ano"])
-        num_anos_sel = max(len(anos_lep_sel), 1)
 
         lkpi1, lkpi2, lkpi3 = st.columns(3)
         lkpi1.metric(f"Total Acumulado ({anos_lep_txt})", f"{tot_lep:,}".replace(",", "."))
-        lkpi2.metric("Média Anual no Recorte", f"{media_lep:.1f} casos/ano")
+        lkpi2.metric("Média Anual no Recife", f"{media_lep:.1f} casos/ano")
         lkpi3.metric("Ano de Maior Ocorrência", f"{ano_pico} ({casos_pico} casos)")
 
         st.markdown("---")
@@ -566,131 +545,96 @@ else:
 
             🔍 **Nota Metodológica sobre as Bases de Dados:**
             * **Série Histórica Temporal (Anos e Meses):** Extraída diretamente dos microdados oficiais brutos do **SINAN / DATASUS** (Município de Notificação: Recife - 261160).
-            * **Distribuição Territorial Reativa:** A espacialização no mapa coroplético e nos gráficos é calculada dinamicamente conforme os anos selecionados, aplicando o coeficiente epidemiológico apurado nos boletins da **Secretaria Executiva de Vigilância à Saúde do Recife (Sesau/Cievs)** sobre o volume real do SINAN. O Ministério da Saúde suprime a identificação de bairros individuais nas bases públicas abertas por sigilo estatístico (LGPD).
+            * **Distribuição Territorial:** A espacialização no mapa coroplético reflete os coeficientes de incidência e o peso proporcional dos **8 Distritos Sanitários (DS I ao DS VIII)** apurados nos relatórios e boletins epidemiológicos da **Secretaria Executiva de Vigilância à Saúde do Recife (Sesau/Cievs)**. O Ministério da Saúde suprime a identificação de bairros individuais nas bases públicas abertas por sigilo estatístico (LGPD), dada a menor amostragem nominal da doença em comparação às arboviroses.
             """)
-
-        RPA_PARA_DS = {
-            "RPA 1 (Centro)": "DS I (Centro)",
-            "RPA 2 (Norte)": "DS II (Norte)",
-            "RPA 3 (Noroeste)": "DS III (Noroeste - Planície/Colinas)",
-            "RPA 4 (Oeste)": "DS IV (Oeste)",
-            "RPA 5 (Sudoeste)": "DS V (Sudoeste / Bacia do Tejipió)",
-            "RPA 6 (Sul)": "DS VI (Sul - Litoral/Planície)",
-        }
-
-        df_ds_dinamico = df_lepto_ds.copy()
-        df_ds_dinamico["casos_periodo"] = (df_ds_dinamico["peso_casos"] * tot_lep).round().astype(int)
-        df_ds_dinamico["taxa_periodo"] = ((df_ds_dinamico["casos_periodo"] / df_ds_dinamico["populacao"]) * 100000 / num_anos_sel).round(1)
-
-        dict_ds_casos = dict(zip(df_ds_dinamico["distrito"], df_ds_dinamico["casos_periodo"]))
-        dict_ds_taxas = dict(zip(df_ds_dinamico["distrito"], df_ds_dinamico["taxa_periodo"]))
-        dict_ds_risco = dict(zip(df_ds_dinamico["distrito"], df_ds_dinamico["risco"]))
-
-        gdf_mapa_lep = gdf_bairros.copy()
-        if not df_lepto_bairros.empty:
-            df_b_ref = df_lepto_bairros.drop_duplicates(subset=["bairro_norm"])
-            gdf_mapa_lep = gdf_mapa_lep.merge(df_b_ref[["bairro_norm", "distrito_sanitario", "nivel_risco"]], on="bairro_norm", how="left")
-        else:
-            gdf_mapa_lep["distrito_sanitario"] = None
-            gdf_mapa_lep["nivel_risco"] = None
-
-        gdf_mapa_lep["distrito_sanitario"] = gdf_mapa_lep["distrito_sanitario"].fillna(gdf_mapa_lep["rpa_nome"].map(RPA_PARA_DS)).fillna("DS I (Centro)")
-        gdf_mapa_lep["nivel_risco"] = gdf_mapa_lep["nivel_risco"].fillna(gdf_mapa_lep["distrito_sanitario"].map(dict_ds_risco)).fillna("Moderado")
-
-        gdf_mapa_lep["taxa_incidencia_ds"] = gdf_mapa_lep["distrito_sanitario"].map(dict_ds_taxas).fillna(5.0)
-        
-        contagem_b = gdf_mapa_lep.groupby("distrito_sanitario")["bairro_norm"].transform("count")
-        gdf_mapa_lep["casos_distrito_total"] = gdf_mapa_lep["distrito_sanitario"].map(dict_ds_casos).fillna(0)
-        gdf_mapa_lep["casos_estimados"] = (gdf_mapa_lep["casos_distrito_total"] / contagem_b).round().astype(int)
-
-        if distritos_selecionados:
-            gdf_mapa_lep["visivel"] = gdf_mapa_lep["distrito_sanitario"].isin(distritos_selecionados)
-        else:
-            gdf_mapa_lep["visivel"] = True
-
-        col_met_lep = "taxa_incidencia_ds" if "Incidência" in modo_mapa_lepto else "casos_estimados"
-        lbl_met_lep = "Taxa Anual / 100k hab" if "Incidência" in modo_mapa_lepto else "Casos Estimados"
 
         col_mapa_lep, col_rank_lep = st.columns([1.6, 1.0])
 
-        with col_mapa_lep:
-            st.subheader("🗺️ Mapeamento Espacial de Risco por Distrito Sanitário")
-            
-            if "Incidência" in modo_mapa_lepto:
-                val_max_lep = 80.0
-                caption_escala = f"{lbl_met_lep} (Escala Comparativa: 0 a 80)"
-                st.caption("💡 **Escala Fixa Comparativa:** Anos calmos (como 2015 ou 2020) ficam em tons amarelos claros; apenas anos de catástrofe climática (como 2022) atingem o vermelho escuro.")
-            else:
-                val_max_lep = max(float(gdf_mapa_lep[col_met_lep].max()), 1.0)
-                caption_escala = f"{lbl_met_lep} ({anos_lep_txt})"
-                st.caption(f"💡 **Volume de Casos:** Concentração estimada de notificações no recorte selecionado ({anos_lep_txt}).")
+        if not df_lepto_bairros.empty:
+            gdf_mapa_lep = gdf_bairros.merge(df_lepto_bairros, on="bairro_norm", how="left").fillna({
+                "distrito_sanitario": "Outros",
+                "casos_estimados": 0,
+                "taxa_incidencia_ds": 0.0,
+                "nivel_risco": "Não informado"
+            })
 
-            palette_lep = ["#ffffcc", "#ffeda0", "#feb24c", "#f03b20", "#800026"]
-            colormap_lep = cm.LinearColormap(
-                colors=palette_lep,
-                vmin=0,
-                vmax=val_max_lep,
-                caption=caption_escala,
-            )
+            if distritos_selecionados:
+                gdf_mapa_lep = gdf_mapa_lep[gdf_mapa_lep["distrito_sanitario"].isin(distritos_selecionados)]
 
-            m_lep = folium.Map(location=[-8.0580, -34.9200], zoom_start=11, tiles="OpenStreetMap")
-            m_lep.get_root().html.add_child(folium.Element("""
-                <style>
-                .leaflet-control-attribution svg, .leaflet-control-attribution a[href*="leafletjs.com"], .leaflet-control-attribution .leaflet-attribution-flag { display: none !important; }
-                </style>
-            """))
+            col_met_lep = "taxa_incidencia_ds" if "Incidência" in modo_mapa_lepto else "casos_estimados"
+            lbl_met_lep = "Taxa / 100k hab" if "Incidência" in modo_mapa_lepto else "Casos Estimados"
 
-            tooltip_lep = folium.GeoJsonTooltip(
-                fields=[col_nome_bairro, "distrito_sanitario", "nivel_risco", "taxa_incidencia_ds", "casos_estimados"],
-                aliases=["Bairro:", "Distrito Sanitário:", "Grau de Risco:", "Taxa Anual (100k hab):", "Casos Estimados:"],
-                localize=True,
-                style="background-color: #ffffff; color: #111111; border: 1px solid #333; border-radius: 4px; padding: 8px; font-family: sans-serif; font-size: 12px;"
-            )
-
-            folium.GeoJson(
-                gdf_mapa_lep,
-                style_function=lambda feature, cmap=colormap_lep, col=col_met_lep: {
-                    "fillColor": cmap(min(feature["properties"][col], val_max_lep)) if feature["properties"]["visivel"] else "#e2e8f0",
-                    "color": "#111111",
-                    "weight": 1.0,
-                    "fillOpacity": 0.88 if feature["properties"]["visivel"] else 0.20,
-                },
-                tooltip=tooltip_lep,
-            ).add_to(m_lep)
-
-            colormap_lep.add_to(m_lep)
-            st_folium(m_lep, width="100%", height=480)
-
-        with col_rank_lep:
-            st.subheader(f"Distritos Sanitários Críticos ({anos_lep_txt})")
-            st.caption(f"💡 **Para que serve:** Casos proporcionais notificados no SINAN durante o período selecionado ({tot_lep} casos no total).")
-            if not df_ds_dinamico.empty:
-                df_ds_plot = df_ds_dinamico.copy()
-                if distritos_selecionados:
-                    df_ds_plot = df_ds_plot[df_ds_plot["distrito"].isin(distritos_selecionados)]
-
-                df_ds_plot = df_ds_plot.sort_values(by="casos_periodo", ascending=True)
-                fig_ds = px.bar(
-                    df_ds_plot,
-                    x="casos_periodo",
-                    y="distrito",
-                    orientation="h",
-                    text="casos_periodo",
-                    labels={"casos_periodo": "Casos no Período", "distrito": ""},
-                    color="casos_periodo",
-                    color_continuous_scale="Reds",
+            with col_mapa_lep:
+                st.subheader("🗺️ Mapeamento Espacial de Risco por Distrito Sanitário")
+                st.caption("💡 **Para que serve:** Mapeia a vulnerabilidade hidro-sanitária. Tons escuros destacam áreas críticas como a Bacia do Tejipió e bacias do Sul.")
+                
+                val_max_lep = max(float(gdf_mapa_lep[col_met_lep].max()), 1.0) if not gdf_mapa_lep.empty else 1.0
+                palette_lep = ["#ffffcc", "#ffeda0", "#feb24c", "#f03b20", "#800026"]
+                colormap_lep = cm.LinearColormap(
+                    colors=palette_lep,
+                    vmin=0,
+                    vmax=val_max_lep,
+                    caption=f"{lbl_met_lep} (Leptospirose)",
                 )
-                fig_ds.update_coloraxes(showscale=False)
-                fig_ds.update_layout(
-                    showlegend=False,
-                    height=480,
-                    margin=dict(l=10, r=10, t=10, b=10),
-                    xaxis_title=f"Casos no Período ({anos_lep_txt})",
-                    yaxis_title=None,
-                    dragmode=False,
+
+                m_lep = folium.Map(location=[-8.0580, -34.9200], zoom_start=11, tiles="OpenStreetMap")
+                m_lep.get_root().html.add_child(folium.Element("""
+                    <style>
+                    .leaflet-control-attribution svg, .leaflet-control-attribution a[href*="leafletjs.com"], .leaflet-control-attribution .leaflet-attribution-flag { display: none !important; }
+                    </style>
+                """))
+
+                tooltip_lep = folium.GeoJsonTooltip(
+                    fields=[col_nome_bairro, "distrito_sanitario", "nivel_risco", "taxa_incidencia_ds", "casos_estimados"],
+                    aliases=["Bairro:", "Distrito Sanitário:", "Grau de Risco:", "Taxa (100k hab):", "Casos Estimados:"],
+                    localize=True,
+                    style="background-color: #ffffff; color: #111111; border: 1px solid #333; border-radius: 4px; padding: 8px; font-family: sans-serif; font-size: 12px;"
                 )
-                fig_ds.update_traces(textposition="inside", insidetextanchor="middle")
-                st.plotly_chart(fig_ds, use_container_width=True, config=plotly_config)
+
+                folium.GeoJson(
+                    gdf_mapa_lep,
+                    style_function=lambda feature, cmap=colormap_lep, col=col_met_lep: {
+                        "fillColor": cmap(feature["properties"][col]),
+                        "color": "#222222",
+                        "weight": 1.0,
+                        "fillOpacity": 0.90,
+                    },
+                    tooltip=tooltip_lep,
+                ).add_to(m_lep)
+
+                colormap_lep.add_to(m_lep)
+                st_folium(m_lep, width="100%", height=480)
+
+            with col_rank_lep:
+                st.subheader("Distritos Sanitários Críticos")
+                st.caption("💡 **Para que serve:** Avalia o volume acumulado em cada Distrito Sanitário da Sesau, apontando as regiões de maior demanda hospitalar.")
+                if not df_lepto_ds.empty:
+                    df_ds_plot = df_lepto_ds.copy()
+                    if distritos_selecionados:
+                        df_ds_plot = df_ds_plot[df_ds_plot["distrito"].isin(distritos_selecionados)]
+
+                    df_ds_plot = df_ds_plot.sort_values(by="casos_historicos", ascending=True)
+                    fig_ds = px.bar(
+                        df_ds_plot,
+                        x="casos_historicos",
+                        y="distrito",
+                        orientation="h",
+                        text="casos_historicos",
+                        labels={"casos_historicos": "Casos Acumulados", "distrito": ""},
+                        color="casos_historicos",
+                        color_continuous_scale="Reds",
+                    )
+                    fig_ds.update_coloraxes(showscale=False)
+                    fig_ds.update_layout(
+                        showlegend=False,
+                        height=480,
+                        margin=dict(l=10, r=10, t=10, b=10),
+                        xaxis_title="Casos Acumulados (SINAN)",
+                        yaxis_title=None,
+                        dragmode=False,
+                    )
+                    fig_ds.update_traces(textposition="inside", insidetextanchor="middle")
+                    st.plotly_chart(fig_ds, use_container_width=True, config=plotly_config)
 
         st.markdown("---")
 
@@ -725,8 +669,8 @@ else:
             st.plotly_chart(fig_bar_lep, use_container_width=True, config=plotly_config)
 
         with col_t2:
-            st.subheader(f"Padrão Sazonal Médio por Mês ({anos_lep_txt})")
-            st.caption(f"💡 **Para que serve:** Média mensal de casos observada considerando apenas o recorte selecionado ({anos_lep_txt}).")
+            st.subheader("Padrão Sazonal Médio por Mês")
+            st.caption("💡 **Para que serve:** Demonstra a quadra chuvosa como gatilho epidemiológico, alertando sobre a época exata de prevenção.")
             meses_nomes = [
                 "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                 "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
@@ -766,9 +710,6 @@ else:
             )
             st.plotly_chart(fig_sazonal, use_container_width=True, config=plotly_config)
 
-# ==============================================================================
-# CRÉDITOS FIXOS NA SIDEBAR & RODAPÉ LIMPO E MODULAR
-# ==============================================================================
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     """
@@ -802,8 +743,10 @@ st.markdown(
     <div style='text-align: center; color: #888888; font-size: 13px; line-height: 1.6; padding-bottom: 20px;'>
         <b>Painel de Vigilância Epidemiológica e Análise Espaço-Temporal (Recife - PE)</b><br>
         Desenvolvimento autoral: <b>Luan Lucena</b> | Graduando em Geografia (Bacharelado) pela <b>Universidade Federal de Pernambuco (UFPE)</b> | Membro do <b>Grupo NEXUS (Sociedade & Natureza)</b><br>
+        Fontes: Portal de Dados Abertos do Recife (PCR) e Sistema de Informação de Agravos de Notificação (SINAN / DATASUS)<br>
         <span style="color: #38BDF8;">Dúvidas, sugestões ou feedbacks?</span> Entre em contato: <a href="mailto:luan.lucena@ufpe.br" style="color: #38BDF8; text-decoration: underline;">luan.lucena@ufpe.br</a>
     </div>
     """,
     unsafe_allow_html=True,
 )
+EOF

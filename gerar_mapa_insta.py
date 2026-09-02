@@ -1,4 +1,5 @@
 import glob
+import io
 import os
 import unicodedata
 import geopandas as gpd
@@ -7,7 +8,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap
 
-# 1. Função de normalização de texto idêntica ao app.py
+# 1. Função de normalização de texto
 def normalizar_texto(texto):
     if pd.isna(texto):
         return ""
@@ -15,50 +16,87 @@ def normalizar_texto(texto):
     texto = "".join([c for c in texto if not unicodedata.combining(c)])
     return texto.strip().upper()
 
-# 2. Carregar a malha vetorial dos bairros do Recife
+# 2. Parsing robusto para desmembrar o CSV híbrido de 2015 e ler 2016-2024
+def extrair_bairros_do_csv(caminho):
+    try:
+        df_raw = pd.read_csv(caminho, sep=";", encoding="utf-8", low_memory=False)
+    except Exception:
+        df_raw = pd.read_csv(caminho, sep=";", encoding="latin1", low_memory=False)
+
+    df_raw.columns = [str(c).lower().strip() for c in df_raw.columns]
+    col_combo = [c for c in df_raw.columns if "," in c]
+
+    dfs_extraidos = []
+
+    # Se tiver a coluna com registros de 2015 concatenados por vírgula
+    if col_combo:
+        col_c = col_combo[0]
+        serie_combo = df_raw[col_c].dropna().astype(str)
+        if len(serie_combo) > 0:
+            linhas_texto = [col_c] + serie_combo.tolist()
+            buffer = io.StringIO("\n".join(linhas_texto))
+            try:
+                df_sub = pd.read_csv(buffer, sep=",", low_memory=False, on_bad_lines="skip")
+                df_sub.columns = [str(c).lower().strip() for c in df_sub.columns]
+                dfs_extraidos.append(df_sub)
+            except Exception:
+                pass
+
+        df_principal = df_raw.drop(columns=[col_c]).dropna(how="all")
+        dfs_extraidos.append(df_principal)
+    else:
+        dfs_extraidos.append(df_raw)
+
+    bairros = []
+    for d in dfs_extraidos:
+        if d.empty:
+            continue
+        col_b = next((c for c in ["no_bairro_residencia", "nm_bairro", "bairro", "ds_bairro", "nome_bairro", "bairro_norm"] if c in d.columns), None)
+        if col_b:
+            s_bairro = d[col_b].dropna().apply(normalizar_texto)
+            s_bairro = s_bairro[s_bairro != ""]
+            bairros.append(s_bairro)
+
+    if bairros:
+        return pd.concat(bairros, ignore_index=True)
+    return pd.Series([], dtype=str)
+
+# 3. Carregar a malha vetorial dos bairros do Recife
 mesh_path = "data/raw/recife_bairros_rpa.gpkg"
+if not os.path.exists(mesh_path):
+    mesh_path = "../data/raw/recife_bairros_rpa.gpkg"
+
 gdf_malha = gpd.read_file(mesh_path)
 
 if gdf_malha.crs is None or gdf_malha.crs.to_epsg() != 31985:
     gdf_malha = gdf_malha.to_crs(epsg=31985)
 
-gdf_malha["bairro_norm"] = gdf_malha["name_neighborhood"].apply(normalizar_texto)
+col_nome = "name_neighborhood" if "name_neighborhood" in gdf_malha.columns else gdf_malha.columns[1]
+gdf_malha["bairro_norm"] = gdf_malha[col_nome].apply(normalizar_texto)
 
-# 3. Ler e concatenar todos os CSVs de 2015 a 2024
-arquivos_csv = sorted(glob.glob("data/raw/arboviroses_*.csv"))
-dfs = []
+# 4. Ler e totalizar todos os CSVs (2015-2024)
+raw_dir = "data/raw" if os.path.exists("data/raw") else "../data/raw"
+arquivos_csv = sorted(glob.glob(os.path.join(raw_dir, "arboviroses_*.csv")))
+todos_bairros = []
 
 for caminho in arquivos_csv:
-    try:
-        df_temp = pd.read_csv(caminho, sep=";", encoding="utf-8", low_memory=False)
-    except Exception:
-        df_temp = pd.read_csv(caminho, sep=";", encoding="latin1", low_memory=False)
-    
-    # Padronização dos nomes de colunas
-    df_temp.columns = [c.lower().strip() for c in df_temp.columns]
-    
-    # Identificar coluna de bairro
-    col_b = None
-    for c in ["bairro", "no_bairro", "nome_bairro", "ds_bairro", "nm_bairro", "bairro_norm"]:
-        if c in df_temp.columns:
-            col_b = c
-            break
-            
-    if col_b:
-        df_temp["bairro_norm"] = df_temp[col_b].apply(normalizar_texto)
-        dfs.append(df_temp[["bairro_norm"]])
+    serie = extrair_bairros_do_csv(caminho)
+    if not serie.empty:
+        todos_bairros.append(serie)
 
-df_total = pd.concat(dfs, ignore_index=True)
+df_total = pd.DataFrame({"bairro_norm": pd.concat(todos_bairros, ignore_index=True)})
 
-# 4. Totalizar as notificações decenais reais (2015-2024) por bairro
+# 5. Totalizar as notificações decenais reais por bairro
 contagem = df_total["bairro_norm"].value_counts().reset_index()
 contagem.columns = ["bairro_norm", "total_casos"]
 
-# 5. Merge com a malha vetorial oficial
+# 6. Merge com a malha vetorial oficial
 gdf_mapa = gdf_malha.merge(contagem, on="bairro_norm", how="left")
 gdf_mapa["total_casos"] = gdf_mapa["total_casos"].fillna(0)
 
-# 6. Paleta e Estilo Dark
+print(f"📊 Total de notificações contabilizadas (2015-2024): {int(gdf_mapa['total_casos'].sum()):,}")
+
+# 7. Paleta e Estilo Dark
 cores_paleta = ["#FEF0D9", "#FDCC8A", "#FC8D59", "#E34A33", "#B30000"]
 cmap_custom = LinearSegmentedColormap.from_list("painel_stream", cores_paleta)
 
@@ -70,7 +108,7 @@ subtext_color = "#94A3B8"
 fig, ax = plt.subplots(figsize=(10, 10), facecolor=bg_color)
 ax.set_facecolor(bg_color)
 
-# 7. Plotagem Coroplética
+# 8. Plotagem Coroplética com Quebras Naturais (Jenks / NaturalBreaks)
 gdf_mapa.plot(
     column="total_casos",
     cmap=cmap_custom,
@@ -91,14 +129,14 @@ gdf_mapa.plot(
     ax=ax,
 )
 
-# 8. Posicionamento da Legenda na margem direita
+# 9. Posicionamento da Legenda na margem direita
 legend = ax.get_legend()
 if legend:
     plt.setp(legend.get_texts(), color=text_color)
     plt.setp(legend.get_title(), color=text_color, fontweight="bold")
     legend.set_bbox_to_anchor((0.85, 0.28), transform=fig.transFigure)
 
-# 9. Escala Gráfica Dinâmica
+# 10. Escala Gráfica Dinâmica
 bounds = gdf_mapa.total_bounds
 dx = bounds[2] - bounds[0]
 dy = bounds[3] - bounds[1]
@@ -125,7 +163,7 @@ ax.text(scale_x, scale_y - 450, "0", color=text_color, fontsize=8, ha="center", 
 ax.text(scale_x + scale_len / 2, scale_y - 450, "2.5", color=text_color, fontsize=8, ha="center", va="top")
 ax.text(scale_x + scale_len, scale_y - 450, "5 km", color=text_color, fontsize=8, ha="center", va="top")
 
-# 10. Rosa dos Ventos
+# 11. Rosa dos Ventos
 north_x = scale_x + scale_len / 2
 north_y = scale_y + 1400
 ax.annotate(
@@ -140,7 +178,7 @@ ax.annotate(
     color=text_color,
 )
 
-# 11. Título e Metadados Cartográficos
+# 12. Título e Metadados Cartográficos
 fig.text(
     0.08,
     0.93,
@@ -174,7 +212,7 @@ metadados = (
 )
 fig.text(0.08, 0.04, metadados, fontsize=7.5, color=subtext_color, ha="left")
 
-# 12. Salvar Imagem
+# 13. Salvar Imagem em Alta Resolução
 ax.set_axis_off()
 plt.subplots_adjust(left=0.04, right=0.96, top=0.85, bottom=0.08)
 

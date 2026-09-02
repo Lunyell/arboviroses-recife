@@ -1,0 +1,94 @@
+bairro_norm;distrito_sanitario;casos_estimados;taxa_incidencia_ds;nivel_risco
+RECIFE;DS I (Centro);18;13.5;Moderado
+SANTO AMARO;DS I (Centro);18;13.5;Moderado
+BOA VISTA;DS I (Centro);18;13.5;Moderado
+CABANGA;DS I (Centro);18;13.5;Moderado
+ILHA DO LEITE;DS I (Centro);18;13.5;Moderado
+PAISSANDU;DS I (Centro);18;13.5;Moderado
+SANTO ANTONIO;DS I (Centro);18;13.5;Moderado
+SAO JOSE;DS I (Centro);18;13.5;Moderado
+COELHOS;DS I (Centro);18;13.5;Moderado
+SOLEDADE;DS I (Centro);18;13.5;Moderado
+ILHA JOANA BEZERRA;DS I (Centro);18;13.5;Moderado
+ALTO SANTA TEREZINHA;DS II (Norte);39;16.4;Alto
+AGUA FRIA;DS II (Norte);39;16.4;Alto
+ARRUDA;DS II (Norte);39;16.4;Alto
+BEBERIBE;DS II (Norte);39;16.4;Alto
+BOMBA DO HEMETERIO;DS II (Norte);39;16.4;Alto
+CAMPO GRANDE;DS II (Norte);39;16.4;Alto
+CAJUEIRO;DS II (Norte);39;16.4;Alto
+CAMPINA DO BARRETO;DS II (Norte);39;16.4;Alto
+DOIS UNIDOS;DS II (Norte);39;16.4;Alto
+FUNDAO;DS II (Norte);39;16.4;Alto
+HIPODROMO;DS II (Norte);39;16.4;Alto
+LINHA DO TIRO;DS II (Norte);39;16.4;Alto
+PONTO DE PARADA;DS II (Norte);39;16.4;Alto
+PORTO DA MADEIRA;DS II (Norte);39;16.4;Alto
+PEIXINHOS;DS II (Norte);39;16.4;Alto
+ROSARINHO;DS II (Norte);39;16.4;Alto
+TORREAO;DS II (Norte);39;16.4;Alto
+AFLITOS;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+ALTO DO MANDU;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+APIPUCOS;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+CASA AMARELA;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+CASA FORTE;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+DERBY;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+DOIS IRMAOS;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+ESPINHEIRO;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+GRACAS;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+JAQUEIRA;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+MONTEIRO;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+PARNAMIRIM;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+POCO DA PANELA;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+SANTANA;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+SITIO DOS PINTOS;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+TAMARINEIRA;DS III (Noroeste - Planície/Colinas);11;7.3;Baixo
+CAXANGA;DS IV (Oeste);43;10.6;Moderado-Alto
+CIDADE UNIVERSITARIA;DS IV (Oeste);43;10.6;Moderado-Alto
+CORDEIRO;DS IV (Oeste);43;10.6;Moderado-Alto
+ENGENHO DO MEIO;DS IV (Oeste);43;10.6;Moderado-Alto
+ILHA DO RETIRO;DS IV (Oeste);43;10.6;Moderado-Alto
+IPUTINGA;DS IV (Oeste);43;10.6;Moderado-Alto
+MADALENA;DS IV (Oeste);43;10.6;Moderado-Alto
+PRADO;DS IV (Oeste);43;10.6;Moderado-Alto
+TORRE;DS IV (Oeste);43;10.6;Moderado-Alto
+TORROES;DS IV (Oeste);43;10.6;Moderado-Alto
+VARZEA;DS IV (Oeste);43;10.6;Moderado-Alto
+ZUMBI;DS IV (Oeste);43;10.6;Moderado-Alto
+AFOGADOS;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+AREIAS;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+BARRO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+BONGI;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+CACOTE;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+COQUEIRAL;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+CURADO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+ESTANCIA;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+JARDIM SAO PAULO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+JIQUIA;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+MANGUEIRA;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+MUSTARDINHA;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+SANCHO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+SAN MARTIN;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+TEJIPIO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+TOTO;DS V (Sudoeste / Bacia do Tejipió);79;32.6;Muito Alto (Crítico)
+BOA VIAGEM;DS VI (Sul - Litoral/Planície);58;6.5;Moderado
+BRASILIA TEIMOSA;DS VI (Sul - Litoral/Planície);58;6.5;Moderado
+IMBIRIBEIRA;DS VI (Sul - Litoral/Planície);58;6.5;Moderado
+IPSEP;DS VI (Sul - Litoral/Planície);58;6.5;Moderado
+PINA;DS VI (Sul - Litoral/Planície);58;6.5;Moderado
+ALTO JOSE BONIFACIO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+ALTO JOSE DO PINHO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+BREJO DA GUABIRABA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+BREJO DE BEBERIBE;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+CORREGO DO JENIPAPO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+GUABIRABA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+MACAXEIRA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+MANGABEIRA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+MORRO DA CONCEICAO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+NOVA DESCOBERTA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+PASSARINHO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+PAU FERRO;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+VASCO DA GAMA;DS VII (Noroeste - Encostas/Córregos);41;13.4;Alto
+COHAB;DS VIII (Sul - Bacia do Ibura/Jordão);267;26.3;Muito Alto (Crítico)
+IBURA;DS VIII (Sul - Bacia do Ibura/Jordão);267;26.3;Muito Alto (Crítico)
+JORDAO;DS VIII (Sul - Bacia do Ibura/Jordão);267;26.3;Muito Alto (Crítico)

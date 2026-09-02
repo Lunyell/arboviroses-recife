@@ -1,0 +1,9 @@
+distrito;peso_casos;populacao;risco;casos_historicos;taxa_incidencia_100k
+DS I (Centro);0.045;78000;Moderado;200;13.5
+DS II (Norte);0.15;215000;Alto;668;16.4
+DS III (Noroeste - Planície/Colinas);0.04;128000;Baixo;178;7.3
+DS IV (Oeste);0.115;255000;Moderado-Alto;512;10.6
+DS V (Sudoeste / Bacia do Tejipió);0.285;205000;Muito Alto (Crítico);1269;32.6
+DS VI (Sul - Litoral/Planície);0.065;235000;Moderado;289;6.5
+DS VII (Noroeste - Encostas/Córregos);0.12;210000;Alto;534;13.4
+DS VIII (Sul - Bacia do Ibura/Jordão);0.18;160000;Muito Alto (Crítico);801;26.3

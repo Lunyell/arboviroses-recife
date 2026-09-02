@@ -11,61 +11,47 @@ import plotly.express as px
 import streamlit as st
 from streamlit_folium import st_folium
 
+# Configuração com controle de estado da sidebar
+if "sidebar_state" not in st.session_state:
+    st.session_state.sidebar_state = "collapsed"
+
 st.set_page_config(
     page_title="Painel Epidemiológico | Recife",
     page_icon="🦟",
     layout="wide",
+    initial_sidebar_state=st.session_state.sidebar_state,
 )
 
 st.markdown("""
 <style>
-/* 1. Transforma o botão '>>' nativo em um botão largo '⚙️ Abrir filtros' */
-[data-testid="stSidebarCollapsedControl"] {
-    display: block !important;
-    position: fixed !important;
-    top: 10px !important;
-    left: 10px !important;
-    z-index: 999999 !important;
-}
-
-[data-testid="stSidebarCollapsedControl"] button,
-[data-testid="collapsedControl"] button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: auto !important;
-    min-width: 140px !important;
-    height: 40px !important;
+/* Destaque para o botão nativo de abertura no mobile/desktop */
+div[data-testid="stButton"] button.btn-filtro {
     background-color: #38BDF8 !important;
-    border: none !important;
-    border-radius: 20px !important;
-    padding: 6px 16px !important;
-    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.45) !important;
-    cursor: pointer !important;
-}
-
-/* Esconde as setinhas '>>' antigas */
-[data-testid="stSidebarCollapsedControl"] button svg,
-[data-testid="collapsedControl"] button svg {
-    display: none !important;
-}
-
-/* Insere o texto claro e visível no lugar */
-[data-testid="stSidebarCollapsedControl"] button::after,
-[data-testid="collapsedControl"] button::after {
-    content: "⚙️ Abrir filtros" !important;
-    font-size: 0.92rem !important;
-    font-weight: 800 !important;
     color: #070B14 !important;
-    letter-spacing: 0.2px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    border-radius: 24px !important;
+    padding: 8px 20px !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4) !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
 }
-
-[data-testid="stSidebarCollapsedControl"] button:hover {
+div[data-testid="stButton"] button.btn-filtro:hover {
     background-color: #0ea5e9 !important;
-    transform: scale(1.03) !important;
+    transform: scale(1.01) !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
+def alternar_sidebar():
+    st.session_state.sidebar_state = "expanded"
+
+# Botão de destaque imediato no topo da página
+col_btn, _ = st.columns([1, 2])
+with col_btn:
+    if st.button("⚙️ Abrir Painel de Filtros", key="btn_abrir_filtros", on_click=alternar_sidebar, help="Toque aqui para selecionar anos, doenças e distritos"):
+        pass
 
 def formatar_anos_texto(anos_lista):
     if not anos_lista:

@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 
 st.set_page_config(
@@ -20,65 +19,62 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* 1. Transforma o ícone nativo '>>' em um botão visível no topo */
+/* 1. Transforma o botão nativo do '>>' exatamente na cápsula azul da imagem */
+[data-testid="stSidebarCollapsedControl"],
+.st-emotion-cache-15hul6a,
+[data-testid="collapsedControl"] {
+    display: block !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 1000001 !important;
+    overflow: visible !important;
+}
+
 [data-testid="stSidebarCollapsedControl"] button,
+.st-emotion-cache-15hul6a button,
 [data-testid="collapsedControl"] button {
-    background-color: #38BDF8 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%) !important;
+    border: 1px solid #7dd3fc !important;
+    border-radius: 16px !important;
+    width: auto !important;
+    min-width: 175px !important;
+    height: 38px !important;
+    padding: 6px 16px !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+    cursor: pointer !important;
+    overflow: visible !important;
+}
+
+/* Oculta o ícone nativo '>>' */
+[data-testid="stSidebarCollapsedControl"] button svg,
+[data-testid="collapsedControl"] button svg {
+    display: none !important;
+}
+
+/* Escreve o texto com o ícone no lugar exato */
+[data-testid="stSidebarCollapsedControl"] button::after,
+[data-testid="collapsedControl"] button::after {
+    content: "⚙️ Abrir Painel de Filtros" !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
     color: #070B14 !important;
-    border-radius: 8px !important;
-    padding: 6px 12px !important;
-    border: none !important;
-    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4) !important;
+    letter-spacing: 0.2px !important;
+    white-space: nowrap !important;
 }
 
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="collapsedControl"] svg {
-    fill: #070B14 !important;
-    stroke: #070B14 !important;
-    width: 20px !important;
-    height: 20px !important;
+/* Efeito de clique e hover */
+[data-testid="stSidebarCollapsedControl"] button:hover {
+    filter: brightness(1.08) !important;
 }
-
-/* 2. Botão principal destacado de filtros */
-div[data-testid="stButton"] button {
-    background: linear-gradient(135deg, #38BDF8, #0284C7) !important;
-    color: #070B14 !important;
-    font-weight: 800 !important;
-    font-size: 0.95rem !important;
-    border-radius: 12px !important;
-    padding: 10px 20px !important;
-    border: none !important;
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.45) !important;
-    width: 100% !important;
-    margin-bottom: 8px !important;
-}
-
-div[data-testid="stButton"] button:active {
-    transform: scale(0.98) !important;
+[data-testid="stSidebarCollapsedControl"] button:active {
+    transform: scale(0.97) !important;
 }
 </style>
 """, unsafe_allow_html=True)
-
-# Botão nativo com acionamento JavaScript
-col_btn, _ = st.columns([1.2, 1.8])
-with col_btn:
-    abrir_clicado = st.button("⚙️ Abrir Painel de Filtros", key="btn_abrir_filtros_mobile")
-
-if abrir_clicado:
-    components.html("""
-    <script>
-    (function() {
-        const parentDoc = window.parent.document;
-        // Localiza o botão nativo de abertura da sidebar no Streamlit
-        const btnSidebar = parentDoc.querySelector('[data-testid="stSidebarCollapsedControl"] button') 
-                        || parentDoc.querySelector('[data-testid="collapsedControl"] button')
-                        || parentDoc.querySelector('button[aria-label="Expand sidebar"]');
-        if (btnSidebar) {
-            btnSidebar.click();
-        }
-    })();
-    </script>
-    """, height=0, width=0)
 
 def formatar_anos_texto(anos_lista):
     if not anos_lista:

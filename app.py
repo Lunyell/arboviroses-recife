@@ -19,71 +19,52 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* 1. MIRA DIRETA NO BOTÃO NATIVO DA SETA DO STREAMLIT (TODOS OS SELETORES POSSÍVEIS) */
-header[data-testid="stHeader"] button[aria-label*="sidebar" i],
-header[data-testid="stHeader"] button[title*="sidebar" i],
+/* 1. Transforma o botão '>>' nativo em um botão largo '⚙️ Abrir filtros' */
+[data-testid="stSidebarCollapsedControl"] {
+    display: block !important;
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    z-index: 999999 !important;
+}
+
 [data-testid="stSidebarCollapsedControl"] button,
-[data-testid="collapsedControl"] button,
-button[kind="header"] {
-    background-color: #38BDF8 !important;
-    color: #070B14 !important;
-    border: 2px solid #38BDF8 !important;
-    border-radius: 20px !important;
-    padding: 6px 14px !important;
-    height: auto !important;
-    min-width: 105px !important;
+[data-testid="collapsedControl"] button {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.45) !important;
+    width: auto !important;
+    min-width: 140px !important;
+    height: 40px !important;
+    background-color: #38BDF8 !important;
+    border: none !important;
+    border-radius: 20px !important;
+    padding: 6px 16px !important;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.45) !important;
+    cursor: pointer !important;
 }
 
-/* Força ícone e setas pretas dentro do botão azul */
-header[data-testid="stHeader"] button[aria-label*="sidebar" i] svg,
-header[data-testid="stHeader"] button[title*="sidebar" i] svg,
-[data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="collapsedControl"] svg {
-    fill: #070B14 !important;
-    stroke: #070B14 !important;
-    width: 18px !important;
-    height: 18px !important;
+/* Esconde as setinhas '>>' antigas */
+[data-testid="stSidebarCollapsedControl"] button svg,
+[data-testid="collapsedControl"] button svg {
+    display: none !important;
 }
 
-/* Insere a palavra 'FILTROS' ao lado da seta */
-header[data-testid="stHeader"] button[aria-label*="sidebar" i]::after,
-header[data-testid="stHeader"] button[title*="sidebar" i]::after,
+/* Insere o texto claro e visível no lugar */
 [data-testid="stSidebarCollapsedControl"] button::after,
 [data-testid="collapsedControl"] button::after {
-    content: " Filtros" !important;
-    color: #070B14 !important;
-    font-size: 0.86rem !important;
+    content: "⚙️ Abrir filtros" !important;
+    font-size: 0.92rem !important;
     font-weight: 800 !important;
-    margin-left: 6px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    color: #070B14 !important;
+    letter-spacing: 0.2px !important;
 }
 
-/* 2. CARD CHAMATIVO COM CLIQUE AUTOMÁTICO */
-.card-filtro-mobile {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(14, 165, 233, 0.08) 100%);
-    border: 1.5px solid #38BDF8;
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.2);
+[data-testid="stSidebarCollapsedControl"] button:hover {
+    background-color: #0ea5e9 !important;
+    transform: scale(1.03) !important;
 }
 </style>
-
-<!-- SCRIPT PARA ABRIR A BARRA LATERAL AO CLICAR NO CARD -->
-<script>
-function abrirSidebar() {
-    const btn = window.parent.document.querySelector('header[data-testid="stHeader"] button[aria-label*="sidebar" i], [data-testid="stSidebarCollapsedControl"] button, [data-testid="collapsedControl"] button');
-    if (btn) {
-        btn.click();
-    }
-}
-</script>
 """, unsafe_allow_html=True)
 
 def formatar_anos_texto(anos_lista):
@@ -297,22 +278,6 @@ plotly_config = {
     "responsive": True,
     "scrollZoom": False,
 }
-
-# CARD COM ÍCONE DE INDICADOR CLARO PARA O MOBILE
-st.markdown("""
-<div class="card-filtro-mobile" onclick="abrirSidebar()">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 1.4rem;">⚙️</span>
-            <div>
-                <b style="color: #38BDF8; font-size: 0.95rem;">Precisa alterar anos ou filtros?</b><br>
-                <span style="color: #94A3B8; font-size: 0.82rem;">Clique aqui ou toque no botão <b>>> Filtros</b> no topo esquerdo.</span>
-            </div>
-        </div>
-        <span style="background: #38BDF8; color: #070B14; font-weight: 800; font-size: 0.8rem; padding: 4px 10px; border-radius: 14px;">Abrir</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 opcoes_modulo = ["🦟 Arboviroses (Dengue, Chik, Zika)", "🐀 Leptospirose (Série SINAN)"]
 modulo_ativo = st.radio(
@@ -530,7 +495,7 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
         st.plotly_chart(fig_rpa, use_container_width=True, config=plotly_config)
 
 # ==============================================================================
-# 2. VISÃO: LEPTOSPIROSE
+# 2. VISÃO: LEPTOSPIROSE (SÉRIE SINAN)
 # ==============================================================================
 else:
     st.sidebar.header("⚙️ Filtros de Leptospirose")

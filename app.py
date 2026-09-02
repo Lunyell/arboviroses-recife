@@ -9,49 +9,76 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+import streamlit.components.v1 as components
 from streamlit_folium import st_folium
-
-# Configuração com controle de estado da sidebar
-if "sidebar_state" not in st.session_state:
-    st.session_state.sidebar_state = "collapsed"
 
 st.set_page_config(
     page_title="Painel Epidemiológico | Recife",
     page_icon="🦟",
     layout="wide",
-    initial_sidebar_state=st.session_state.sidebar_state,
 )
 
 st.markdown("""
 <style>
-/* Destaque para o botão nativo de abertura no mobile/desktop */
-div[data-testid="stButton"] button.btn-filtro {
+/* 1. Transforma o ícone nativo '>>' em um botão visível no topo */
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="collapsedControl"] button {
     background-color: #38BDF8 !important;
     color: #070B14 !important;
-    font-weight: 800 !important;
-    font-size: 1rem !important;
-    border-radius: 24px !important;
-    padding: 8px 20px !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4) !important;
-    width: 100% !important;
-    margin-bottom: 12px !important;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4) !important;
 }
-div[data-testid="stButton"] button.btn-filtro:hover {
-    background-color: #0ea5e9 !important;
-    transform: scale(1.01) !important;
+
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg {
+    fill: #070B14 !important;
+    stroke: #070B14 !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+/* 2. Botão principal destacado de filtros */
+div[data-testid="stButton"] button {
+    background: linear-gradient(135deg, #38BDF8, #0284C7) !important;
+    color: #070B14 !important;
+    font-weight: 800 !important;
+    font-size: 0.95rem !important;
+    border-radius: 12px !important;
+    padding: 10px 20px !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.45) !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+}
+
+div[data-testid="stButton"] button:active {
+    transform: scale(0.98) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-def alternar_sidebar():
-    st.session_state.sidebar_state = "expanded"
-
-# Botão de destaque imediato no topo da página
-col_btn, _ = st.columns([1, 2])
+# Botão nativo com acionamento JavaScript
+col_btn, _ = st.columns([1.2, 1.8])
 with col_btn:
-    if st.button("⚙️ Abrir Painel de Filtros", key="btn_abrir_filtros", on_click=alternar_sidebar, help="Toque aqui para selecionar anos, doenças e distritos"):
-        pass
+    abrir_clicado = st.button("⚙️ Abrir Painel de Filtros", key="btn_abrir_filtros_mobile")
+
+if abrir_clicado:
+    components.html("""
+    <script>
+    (function() {
+        const parentDoc = window.parent.document;
+        // Localiza o botão nativo de abertura da sidebar no Streamlit
+        const btnSidebar = parentDoc.querySelector('[data-testid="stSidebarCollapsedControl"] button') 
+                        || parentDoc.querySelector('[data-testid="collapsedControl"] button')
+                        || parentDoc.querySelector('button[aria-label="Expand sidebar"]');
+        if (btnSidebar) {
+            btnSidebar.click();
+        }
+    })();
+    </script>
+    """, height=0, width=0)
 
 def formatar_anos_texto(anos_lista):
     if not anos_lista:

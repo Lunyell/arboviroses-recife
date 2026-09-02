@@ -15,63 +15,27 @@ st.set_page_config(
     page_title="Painel Epidemiológico | Recife",
     page_icon="🦟",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown("""
 <style>
-/* 1. Transforma o botão nativo do '>>' exatamente na cápsula azul da imagem */
-[data-testid="stSidebarCollapsedControl"],
-.st-emotion-cache-15hul6a,
-[data-testid="collapsedControl"] {
-    display: block !important;
-    position: fixed !important;
-    top: 12px !important;
-    left: 12px !important;
-    z-index: 1000001 !important;
-    overflow: visible !important;
+/* Card de instrução mobile */
+.aviso-filtros-mobile {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: #94A3B8;
+    margin-top: 6px;
+    margin-bottom: 12px;
 }
-
-[data-testid="stSidebarCollapsedControl"] button,
-.st-emotion-cache-15hul6a button,
-[data-testid="collapsedControl"] button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%) !important;
-    border: 1px solid #7dd3fc !important;
-    border-radius: 16px !important;
-    width: auto !important;
-    min-width: 175px !important;
-    height: 38px !important;
-    padding: 6px 16px !important;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
-    cursor: pointer !important;
-    overflow: visible !important;
-}
-
-/* Oculta o ícone nativo '>>' */
-[data-testid="stSidebarCollapsedControl"] button svg,
-[data-testid="collapsedControl"] button svg {
-    display: none !important;
-}
-
-/* Escreve o texto com o ícone no lugar exato */
-[data-testid="stSidebarCollapsedControl"] button::after,
-[data-testid="collapsedControl"] button::after {
-    content: "⚙️ Abrir Painel de Filtros" !important;
-    font-size: 0.88rem !important;
-    font-weight: 700 !important;
-    color: #070B14 !important;
-    letter-spacing: 0.2px !important;
-    white-space: nowrap !important;
-}
-
-/* Efeito de clique e hover */
-[data-testid="stSidebarCollapsedControl"] button:hover {
-    filter: brightness(1.08) !important;
-}
-[data-testid="stSidebarCollapsedControl"] button:active {
-    transform: scale(0.97) !important;
+.aviso-filtros-mobile b {
+    color: #38BDF8;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -366,6 +330,13 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
 
     st.title("🦟 Painel de Arboviroses | Recife")
     anos_txt = formatar_anos_texto(anos_selecionados)
+    
+    st.markdown("""
+    <div class="aviso-filtros-mobile">
+        💡 <span>No celular: use a seta no canto superior esquerdo (<b>&gt;&gt;</b>) para abrir os filtros.</span>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.caption(
         f"Período: **{anos_txt}** | Agravo: **{tipo_doenca}** | Métrica: **{label_metrica}**<br>"
         f"📍 <span style='color: #94A3B8;'><b>Fonte dos Dados:</b> Portal de Dados Abertos do Recife (PCR / Sesau)</span>",
@@ -387,7 +358,7 @@ if modulo_ativo == "🦟 Arboviroses (Dengue, Chik, Zika)":
 
         * **Dengue:** Provoca febre alta e repentina, dor de cabeça muito forte, dor atrás dos olhos e dores musculares intensas (sensação de "corpo quebrado"). Em casos graves, a dengue pode causar sangramentos, queda brusca de pressão e levar à internação em UTI. Como existem 4 sorotipos diferentes do vírus, uma pessoa pode ter dengue até quatro vezes, sendo que as reinfecções costumam ter risco aumentado de gravidade.
         * **Chikungunya:** É conhecida pelas dores articulares (nas "juntas") extremamente intensas e debilitantes. A pessoa muitas vezes mal consegue caminhar ou segurar objetos. O grande desafio da Chikungunya é que, mesmo depois que a febre passa, as dores nas articulações podem se tornar crônicas e durar meses ou até anos, prejudicando gravemente a rotina de trabalho e a qualidade de vida.
-        * **Zika:** Geralmente causa sintomas mais leves no momento da infecção, como manchas vermelhas na pele que coçam muito (exantema), olhos vermelhos e febre baixa. No entanto, o Zika trouxe um impacto histórico mundial para o Recife: a infecção em mulheres grávidas pode provocar a **Síndrome da Zika Congênita** (com casos de microcefalia nos bebês), além de estar associada a complicações neurológicas como a Síndrome de Guillain-Barré.
+        * **Zika:** Geralmente causa sintomas mais leves no momento da infecção, como manchas vermelhas na pele que coçam muito (exantema), olhos vermelhos e febre baixa. No entanto, o Zika trouxe um impacto histórico mundial para o Recife: a infecção em mulheres grávidas pode provocar a **Síndrome da Zika Congênita** (com casos de microcefalia nos bebês), além de estar associada a complicações neurológicas como a肌Síndrome de Guillain-Barré.
 
         ---
 
@@ -555,6 +526,13 @@ else:
         st.warning("⚠️ Execute `python src/python/06_process_leptospirose_distritos.py` para gerar a base de risco.")
     else:
         anos_lep_txt = formatar_anos_texto(anos_lep_sel)
+        
+        st.markdown("""
+        <div class="aviso-filtros-mobile">
+            💡 <span>No celular: use a seta no canto superior esquerdo (<b>&gt;&gt;</b>) para abrir os filtros.</span>
+        </div>
+        """, unsafe_allow_html=True)
+
         st.caption(
             f"Período: **{anos_lep_txt}** | Métrica: **{modo_mapa_lepto}**<br>"
             f"📍 <span style='color: #94A3B8;'><b>Fontes dos Dados:</b> SINAN / DATASUS (Série Histórica Municipal) & Diretoria Executiva de Vigilância à Saúde (Sesau/Cievs Recife - Distritos Sanitários)</span>",
